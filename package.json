@@ -11,6 +11,11 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@prisma/client": "^6.0.0"
+    "@prisma/client": "^6.0.0",
+    "@sinclair/typebox": "^0.34.49",
+    "elysia": "^1.4.28"
+  },
+  "scripts": {
+    "dev": "bun --watch run src/main.ts"
   }
 }

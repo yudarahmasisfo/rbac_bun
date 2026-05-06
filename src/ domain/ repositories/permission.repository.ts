@@ -1,5 +1,9 @@
-import { Permission } from "@prisma/client";
+import type { Permission } from "@prisma/client";
+
 export interface IPermissionRepository {
-  findAll(): Promise<any[]>;
-  create(name: string, description?: string): Promise<any>;
+  findAll(): Promise<Permission[]>;
+  findById(id: string): Promise<Permission | null>;
+  create(name: string, description?: string): Promise<Permission>;
+  update(id: string, name: string, description?: string): Promise<Permission>;
+  delete(id: string): Promise<void>;
 }

@@ -17,13 +17,17 @@ export class PrismaPermissionRepository implements IPermissionRepository {
     });
   }
 
-  async update(id: string, name: string, description?: string): Promise<Permission> {
+  // Ubah definisi fungsi agar menerima objek data, bukan argumen terpisah
+  async update(id: string, data: { name?: string; description?: string }): Promise<Permission> {
     return await db.permission.update({
       where: { id },
-      data: { name, description }
+      data: {
+        name: data.name,
+        description: data.description,
+      },
     });
   }
-
+  
   async delete(id: string): Promise<void> {
     await db.permission.delete({ where: { id } });
   }

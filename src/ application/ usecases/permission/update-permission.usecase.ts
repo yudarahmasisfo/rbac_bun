@@ -1,4 +1,4 @@
-import type { IPermissionRepository } from "../../../domain/repositories/permission.repository";
+import type { IPermissionRepository } from "../../../ domain/ repositories/permission.repository";
 
 export class UpdatePermissionUseCase {
   constructor(private permissionRepo: IPermissionRepository) {}

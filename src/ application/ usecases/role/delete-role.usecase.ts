@@ -1,4 +1,4 @@
-import type { IRoleRepository } from "../../../domain/repositories/role.repository";
+import type { IRoleRepository } from "../../../ domain/ repositories/role.repository";
 
 export class DeleteRoleUseCase {
   constructor(private roleRepo: IRoleRepository) {}

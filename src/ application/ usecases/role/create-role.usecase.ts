@@ -1,5 +1,5 @@
 import Joi from "joi";
-import type { IRoleRepository } from "../../../domain/repositories/role.repository";
+import type { IRoleRepository } from "../../../ domain/ repositories/role.repository";
 
 export const createRoleSchema = Joi.object({
   name: Joi.string().min(3).required().uppercase(),
@@ -13,7 +13,9 @@ export class CreateRoleUseCase {
   async execute(input: any) {
     // Validasi Joi
     const { error, value } = createRoleSchema.validate(input);
-    if (error) throw new Error(error.details[0].message);
+    if (error) {
+      throw new Error(error.details?.[0]?.message ?? "Validasi gagal");
+    }
 
     // Cek apakah Role sudah ada
     const roles = await this.roleRepo.findAll();

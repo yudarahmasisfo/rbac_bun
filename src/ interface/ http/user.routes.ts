@@ -2,11 +2,12 @@ import { Elysia } from "elysia";
 import { PrismaUserRepository } from "../../ infrastructure/ repositories/prisma-user.repository";
 import { RegisterUserUseCase } from "../../ application/ usecases/user/register-user.usecase";
 import { UpdateUserUseCase } from "../../ application/ usecases/user/update-user.usecase";
+import { DeleteUserUseCase } from "../../ application/ usecases/user/delete-user.usecase";
 
 const userRepo = new PrismaUserRepository();
 const registerUseCase = new RegisterUserUseCase(userRepo);
 const updateUseCase = new UpdateUserUseCase(userRepo);
-
+const deleteUseCase = new DeleteUserUseCase(userRepo);
 // Helper untuk menyembunyikan password dari response API demi keamanan
 const sanitizeUser = (user: any) => {
   if (!user) return null;
@@ -61,18 +62,16 @@ export const userRoutes = new Elysia({ prefix: '/users' })
   })
 
   // 5. HAPUS USER
-  .delete("/:id", async ({ params: { id }, set }) => {
+    .delete("/:id", async ({ params: { id }, set }) => {
     try {
-      const existingUser = await userRepo.findById(id);
-      if (!existingUser) {
-        set.status = 404;
-        return { error: "User tidak ditemukan" };
-      }
+      await deleteUseCase.execute(id);
       
-      await userRepo.delete(id);
-      return { message: "User berhasil dihapus" };
+      return { 
+        message: "User dan relasi perannya berhasil dihapus selamanya" 
+      };
     } catch (e: any) {
-      set.status = 400;
+      // Jika user tidak ditemukan, kirim status 404
+      set.status = 404;
       return { error: e.message };
     }
   });

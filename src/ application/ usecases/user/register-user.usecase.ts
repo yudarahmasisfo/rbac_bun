@@ -28,7 +28,7 @@ export const registerUserSchema = Joi.object({
   username: Joi.string()
     // Regex: ^[a-zA-Z0-9 ]+$ berarti:
     // a-z (huruf kecil), A-Z (huruf besar), 0-9 (angka), dan " " (spasi)
-    .pattern(/^[a-zA-Z0-9 ]+$/) 
+    .alphanum() 
     .min(3)
     .max(30)
     .required()
@@ -36,6 +36,14 @@ export const registerUserSchema = Joi.object({
       "string.empty": "Username tidak boleh kosong",
       "string.min": "Username minimal harus 3 karakter",
       "string.pattern.base": "Username hanya boleh berisi huruf, angka, dan spasi"
+    }),
+    name: Joi.string()
+    .pattern(/^[a-zA-Z0-9 ]+$/) // Nama Lengkap boleh pakai spasi
+    .min(3)
+    .max(50)
+    .required()
+    .messages({
+      "string.pattern.base": "Nama lengkap hanya boleh berisi huruf dan spasi"
     }),
   email: Joi.string().email().required().messages({
     "string.email": "Format email tidak valid",

@@ -1,4 +1,4 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { PrismaUserRepository } from "../../ infrastructure/ repositories/prisma-user.repository";
 import { RegisterUserUseCase } from "../../ application/ usecases/user/register-user.usecase";
 import { UpdateUserUseCase } from "../../ application/ usecases/user/update-user.usecase";
@@ -53,6 +53,15 @@ export const userRoutes = new Elysia({ prefix: '/users' })
       set.status = 400;
       return { error: e.message };
     }
+  }, {
+    // Validasi skema input untuk POST
+    body: t.Object({
+      username: t.String(),
+      name: t.String(),
+      email: t.String(),
+      password: t.String(),
+      roleIds: t.Array(t.String())
+    })  
   })
 
   // 4. EDIT USER
@@ -66,7 +75,15 @@ export const userRoutes = new Elysia({ prefix: '/users' })
     } catch (e: any) {
       set.status = 400;
       return { error: e.message };
-    }
+    }}, {
+    // Validasi skema input untuk PATCH
+    body: t.Object({
+      username: t.Optional(t.String()),
+      name: t.Optional(t.String()),
+      email: t.Optional(t.String()),
+      password: t.Optional(t.String()),
+      roleIds: t.Optional(t.Array(t.String()))
+    })
   })
 
   // 5. HAPUS USER

@@ -37,11 +37,12 @@ export class PrismaUserRepository implements IUserRepository {
     return await db.user.findUnique({ where: { username } });
   }
 
-  async create(data: { username: string; email: string; password: string; roleIds: string[] }): Promise<User> {
+  async create(data: { username: string; email: string; name: string; password: string; roleIds: string[] }): Promise<User> {
     return await db.user.create({
       data: {
         username: data.username,
         email: data.email,
+        name: data.name,
         password: data.password,
         roles: {
           create: data.roleIds.map((rId) => ({

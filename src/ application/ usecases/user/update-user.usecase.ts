@@ -3,13 +3,21 @@ import type { IUserRepository } from "../../../ domain/ repositories/user.reposi
 
 export const updateUserSchema = Joi.object({
  username: Joi.string()
-    .pattern(/^[a-zA-Z0-9 ]+$/) 
+    .alphanum()
     .min(3)
     .max(30)
     .optional()
     .messages({
       "string.pattern.base": "Username hanya boleh berisi huruf, angka, dan spasi"
     }),
+  name: Joi.string()
+        .pattern(/^[a-zA-Z0-9 ]+$/) // Nama Lengkap boleh pakai spasi
+        .min(3)
+        .max(50)
+        .required()
+        .messages({
+          "string.pattern.base": "Nama lengkap hanya boleh berisi huruf dan spasi"
+        }),   
   email: Joi.string().email().optional(),
   password: Joi.string().min(8).optional(),
   roleIds: Joi.array().items(Joi.string().uuid()).min(1).optional()

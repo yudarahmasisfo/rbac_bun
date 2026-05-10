@@ -14,7 +14,19 @@ const assignPermissionToRoleUseCase = new AssignPermissionToRoleUseCase(roleRepo
 export const roleRoutes = new Elysia({ prefix: '/roles' })
   // 1. LIHAT SEMUA ROLE
   .get("/", async () => {
-    return await roleRepo.findAll();
+    const roles = await roleRepo.findAll();
+    // Cek apakah array roles kosong
+    if (roles.length === 0) {
+      return {
+        message: "Data masih kosong di tabel role",
+        data: []
+      };
+    }
+
+    return {
+      message: "Data role berhasil dimuat",
+      data: roles
+    };
   })
   
   // 2. LIHAT DETAIL ROLE BERDASARKAN ID
@@ -30,17 +42,33 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
   // 3. TAMBAH ROLE
   .post("/", async ({ body, set }) => {
     try {
-      return await createRoleUseCase.execute(body);
+      const newRole = await createRoleUseCase.execute(body);
+      set.status = 201; // Status 201 untuk 'Created'
+      return {
+        message: "Role berhasil ditambahkan",
+        data: newRole
+      };
     } catch (e: any) {
       set.status = 400;
       return { error: e.message };
     }
+  }, {
+    // Menambahkan validasi skema input agar lebih aman
+    body: t.Object({
+      name: t.String(),
+      description: t.Optional(t.String()),
+      permissionIds: t.Array(t.String())
+    })
   })
 
   // 4. UPDATE ROLE (NAMA, DESKRIPSI, ATAU PERMISSIONS)
   .patch("/:id", async ({ params: { id }, body, set }) => {
     try {
-      return await updateUseCase.execute(id, body);
+      const updatedRole = await updateUseCase.execute(id, body);
+      return {
+        message: "Data update role dan permission berhasil di update", // <--- PESAN SUKSES DI SINI
+        data: updatedRole
+      };
     } catch (e: any) {
       set.status = 400;
       return { error: e.message };
@@ -68,7 +96,11 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
   .put("/:id/permissions", async ({ params: { id }, body, set }) => {
     try {
       // Panggil usecase assign permission ke role di sini
-      return await assignPermissionToRoleUseCase.execute(id, body);
+      const updatedRole = await assignPermissionToRoleUseCase.execute(id, body);
+      return {
+        message: "Data update role dan permission berhasil di update", // <--- PESAN SUKSES DI SINI
+        data: updatedRole
+      };
     } catch (e: any) {
       set.status = 400;
       return { error: e.message };

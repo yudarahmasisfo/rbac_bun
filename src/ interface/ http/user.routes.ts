@@ -23,14 +23,10 @@ const sanitizeUser = (user: any) => {
 
 export const userRoutes = new Elysia({ prefix: '/users' })
   // 1. DAFTAR LIST USER
-  // .get("/", async () => {
-  //   const users = await userRepo.findAll();
-  //   return users.map(user => sanitizeUser(user));
-  // })
-
   // ENDPOINT: Daftar Semua User
   .get("/", async () => {
-    return await getAllUsersUseCase.execute();
+    const users = await getAllUsersUseCase.execute();
+    return users.map((user: any) => sanitizeUser(user));
   })
 
   // 2. DETAIL USER BERDASARKAN ID

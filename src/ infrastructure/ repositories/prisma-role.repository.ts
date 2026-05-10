@@ -30,7 +30,10 @@ export class PrismaRoleRepository implements IRoleRepository {
     });
   }
 
-  async update(id: string, data: { name?: string; description?: string; permissionIds?: string[] }): Promise<Role> {
+// src/infrastructure/repositories/prisma-role.repository.ts
+
+async update(id: string, data: { name?: string; description?: string; permissionIds?: string[] }): Promise<Role> {
+  try {
     return await db.role.update({
       where: { id },
       data: {
@@ -39,12 +42,32 @@ export class PrismaRoleRepository implements IRoleRepository {
         permissions: data.permissionIds ? {
           deleteMany: {}, // Hapus relasi lama
           create: data.permissionIds.map(pId => ({
-            permission: { connect: { id: pId } }
+            permission: { connect: { id: pId } } // <--- Ini yang memicu error jika ID salah
           }))
         } : undefined
+      },
+      include: {
+        permissions: {
+          include: {
+            permission: true
+          }
+        }
       }
     });
+  } catch (error: any) {
+    // Cek apakah error disebabkan oleh record relasi yang tidak ditemukan (Prisma Error Code P2025 atau error message terkait connect)
+    if (error.message.includes("record(s)) was found for a nested connect")) {
+      throw new Error("permissionIds yang kamu inputkan ada salah masukkan datanya, cek kembali");
+    }
+    
+    // Jika error lain (misal: ID Role-nya sendiri tidak ada)
+    if (error.code === 'P2025') {
+       throw new Error("Role tidak ditemukan");
+    }
+
+    throw error;
   }
+}
 
   async delete(id: string): Promise<void> {
     await db.role.delete({ where: { id } });

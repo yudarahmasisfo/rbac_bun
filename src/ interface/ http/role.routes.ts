@@ -3,11 +3,13 @@ import { PrismaRoleRepository } from "../../ infrastructure/ repositories/prisma
 import { CreateRoleUseCase } from "../../ application/ usecases/role/create-role.usecase";
 import { UpdateRoleUseCase } from "../../ application/ usecases/role/update-role.usecase";
 import { DeleteRoleUseCase } from "../../ application/ usecases/role/delete-role.usecase";
+import { AssignPermissionToRoleUseCase } from "../../ application/ usecases/role/assign-permission-to-role.usecase";
 
 const roleRepo = new PrismaRoleRepository();
 const createRoleUseCase = new CreateRoleUseCase(roleRepo);
 const updateUseCase = new UpdateRoleUseCase(roleRepo);
 const deleteUseCase = new DeleteRoleUseCase(roleRepo);
+const assignPermissionToRoleUseCase = new AssignPermissionToRoleUseCase(roleRepo);
 
 export const roleRoutes = new Elysia({ prefix: '/roles' })
   // 1. LIHAT SEMUA ROLE
@@ -60,4 +62,19 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
       set.status = 400;
       return { error: e.message };
     }
-  });
+  })
+
+ // 6. ASSIGN PERMISSION KE ROLE (UPDATE KHUSUS PERMISSION SAJA)
+  .put("/:id/permissions", async ({ params: { id }, body, set }) => {
+    try {
+      // Panggil usecase assign permission ke role di sini
+      return await assignPermissionToRoleUseCase.execute(id, body);
+    } catch (e: any) {
+      set.status = 400;
+      return { error: e.message };
+    }
+  }, {
+    body: t.Object({
+      permissionIds: t.Array(t.String())
+    })
+  });       

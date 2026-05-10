@@ -18,16 +18,42 @@ export class PrismaPermissionRepository implements IPermissionRepository {
   }
 
   // Ubah definisi fungsi agar menerima objek data, bukan argumen terpisah
-  async update(id: string, data: { name?: string; description?: string }): Promise<Permission> {
+ // src/infrastructure/repositories/prisma-role.repository.ts
+
+// async update(id: string, data: { name?: string; description?: string; permissionIds?: string[] }) {
+//   return await db.role.update({
+//     where: { id },
+//     data: {
+//       name: data.name,
+//       description: data.description,
+//       // Logika sinkronisasi permissions
+//       permissions: data.permissionIds ? {
+//         deleteMany: {}, // Hapus semua izin lama untuk role ini
+//         create: data.permissionIds.map((pId) => ({
+//           permissionId: pId
+//         })) // Tambahkan izin baru
+//       } : undefined
+//     },
+//     include: {
+//       permissions: {
+//         include: {
+//           permission: true
+//         }
+//       }
+//     }
+//   });
+// }
+
+async update(id: string, data: { name?: string; description?: string }): Promise<Permission> {
     return await db.permission.update({
       where: { id },
       data: {
         name: data.name,
-        description: data.description,
-      },
+        description: data.description
+      }
     });
   }
-  
+
   async delete(id: string): Promise<void> {
     await db.permission.delete({ where: { id } });
   }

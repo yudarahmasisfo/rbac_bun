@@ -53,12 +53,13 @@ export class PrismaUserRepository implements IUserRepository {
     });
   }
 
-  async update(id: string, data: { username?: string; email?: string; password?: string; roleIds?: string[] }): Promise<User> {
+  async update(id: string, data: { username?: string; email?: string; name?: string; password?: string; roleIds?: string[] }): Promise<User> {
     return await db.user.update({
       where: { id },
       data: {
         username: data.username,
         email: data.email,
+        name: data.name,
         password: data.password,
         roles: data.roleIds ? {
           // Hapus semua relasi role yang lama terlebih dahulu

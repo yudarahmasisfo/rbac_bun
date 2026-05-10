@@ -3,11 +3,14 @@ import { PrismaUserRepository } from "../../ infrastructure/ repositories/prisma
 import { RegisterUserUseCase } from "../../ application/ usecases/user/register-user.usecase";
 import { UpdateUserUseCase } from "../../ application/ usecases/user/update-user.usecase";
 import { DeleteUserUseCase } from "../../ application/ usecases/user/delete-user.usecase";
+import { GetAllUsersUseCase } from "../../ application/ usecases/user/get-all-users.usecase";
 
 const userRepo = new PrismaUserRepository();
 const registerUseCase = new RegisterUserUseCase(userRepo);
 const updateUseCase = new UpdateUserUseCase(userRepo);
 const deleteUseCase = new DeleteUserUseCase(userRepo);
+const getAllUsersUseCase = new GetAllUsersUseCase(userRepo);
+
 // Helper untuk menyembunyikan password dari response API demi keamanan
 const sanitizeUser = (user: any) => {
   if (!user) return null;
@@ -17,9 +20,14 @@ const sanitizeUser = (user: any) => {
 
 export const userRoutes = new Elysia({ prefix: '/users' })
   // 1. DAFTAR LIST USER
+  // .get("/", async () => {
+  //   const users = await userRepo.findAll();
+  //   return users.map(user => sanitizeUser(user));
+  // })
+
+  // ENDPOINT: Daftar Semua User
   .get("/", async () => {
-    const users = await userRepo.findAll();
-    return users.map(user => sanitizeUser(user));
+    return await getAllUsersUseCase.execute();
   })
 
   // 2. DETAIL USER BERDASARKAN ID

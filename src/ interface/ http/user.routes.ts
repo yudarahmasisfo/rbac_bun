@@ -4,10 +4,13 @@ import { RegisterUserUseCase } from "../../ application/ usecases/user/register-
 import { UpdateUserUseCase } from "../../ application/ usecases/user/update-user.usecase";
 import { DeleteUserUseCase } from "../../ application/ usecases/user/delete-user.usecase";
 import { GetAllUsersUseCase } from "../../ application/ usecases/user/get-all-users.usecase";
+import { AssignRoleUseCase } from "../../ application/ usecases/user/assign-role.usecase";
+
 
 const userRepo = new PrismaUserRepository();
 const registerUseCase = new RegisterUserUseCase(userRepo);
 const updateUseCase = new UpdateUserUseCase(userRepo);
+const assignRoleUseCase = new AssignRoleUseCase(userRepo);
 const deleteUseCase = new DeleteUserUseCase(userRepo);
 const getAllUsersUseCase = new GetAllUsersUseCase(userRepo);
 
@@ -86,7 +89,25 @@ export const userRoutes = new Elysia({ prefix: '/users' })
     })
   })
 
-  // 5. HAPUS USER
+  // --- 5. ASSIGN ROLE (KHUSUS PERUBAHAN PERAN) ---
+  .put("/:id/roles", async ({ params: { id }, body, set }) => {
+    try {
+      const updatedUser = await assignRoleUseCase.execute(id, body);
+      return {
+        message: "Peran user berhasil diperbarui",
+        data: sanitizeUser(updatedUser)
+      };
+    } catch (e: any) {
+      set.status = 400;
+      return { error: e.message };
+    }
+  }, {
+    body: t.Object({
+      roleIds: t.Array(t.String())
+    })
+  })
+
+  // 6. HAPUS USER
     .delete("/:id", async ({ params: { id }, set }) => {
     try {
       await deleteUseCase.execute(id);

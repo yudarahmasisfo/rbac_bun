@@ -106,7 +106,10 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
       return { error: e.message };
     }
   }, {
+    // UBAH DI SINI: Gunakan t.Any() atau t.Object dengan t.Any() 
+    // agar Joi di Use Case yang menangani pesan errornya
     body: t.Object({
       permissionIds: t.Array(t.String())
+      //permissionIds: t.Any()
     })
   });       

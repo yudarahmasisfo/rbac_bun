@@ -1,34 +1,17 @@
 import Joi from "joi";
 import type { IUserRepository } from "../../../ domain/ repositories/user.repository";
+import { userSchemas } from "../../../ domain/validators/user.validator";
 
-export const updateUserSchema = Joi.object({
- username: Joi.string()
-    .alphanum()
-    .min(3)
-    .max(30)
-    .optional()
-    .messages({
-      "string.pattern.base": "Username hanya boleh berisi huruf, angka, dan spasi"
-    }),
-  name: Joi.string()
-        .pattern(/^[a-zA-Z0-9 ]+$/) // Nama Lengkap boleh pakai spasi
-        .min(3)
-        .max(50)
-        .required()
-        .messages({
-          "string.pattern.base": "Nama lengkap hanya boleh berisi huruf dan spasi"
-        }),   
-  email: Joi.string().email().optional(),
-  password: Joi.string().min(8).optional(),
-  roleIds: Joi.array().items(Joi.string().uuid()).min(1).optional()
-});
 
 export class UpdateUserUseCase {
   constructor(private userRepo: IUserRepository) {}
 
   async execute(id: string, input: any) {
-    // 1. Validasi input
-    const { error, value } = updateUserSchema.validate(input);
+    // 1. Validasi input menggunakan validator pusat
+    const { error, value } = userSchemas.update.validate(input, { 
+      stripUnknown: true, // Hapus field ilegal yang tidak ada di schema
+      abortEarly: true 
+    });
     if (error) {
       throw new Error(error.details?.[0]?.message ?? "Validasi gagal");
     }

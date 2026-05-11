@@ -54,15 +54,6 @@ export const userRoutes = new Elysia({ prefix: '/users' })
       set.status = 400;
       return { error: e.message };
     }
-  }, {
-    // Validasi skema input untuk POST
-    body: t.Object({
-      username: t.String(),
-      name: t.String(),
-      email: t.String(),
-      password: t.String(),
-      roleIds: t.Array(t.String())
-    })  
   })
 
   // 4. EDIT USER

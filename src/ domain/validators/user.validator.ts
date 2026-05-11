@@ -90,4 +90,16 @@ export const userSchemas = {
         "array.min": "Minimal harus ada 1 Role jika ingin memperbarui role.",
       }),
   }),
+
+  login: Joi.object({
+    username: Joi.string().required().messages({
+      "string.empty": "Username masih kosong, tolong diisi.",
+      "any.required": "Username wajib diisi."
+    }),
+    password: Joi.string().required().messages({
+      "string.empty": "Password masih kosong, tolong diisi.",
+      "any.required": "Password wajib diisi."
+    })
+  }),
+
 };

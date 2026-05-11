@@ -11,7 +11,7 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
   .use(
     jwt({
       name: 'jwt',
-      secret: 'RAHASIA_NEGARA_123', // Ganti dengan string yang sangat kuat di .env
+      secret: process.env.JWT_SECRET || 'fallback_secret_jika_env_lupa_diset', // Ganti dengan string yang sangat kuat di .env
       exp: '7d' // Token berlaku selama 7 hari
     })
   )
@@ -33,9 +33,4 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
       set.status = 401;
       return { error: e.message };
     }
-  }, {
-    body: t.Object({
-      username: t.String(),
-      password: t.String()
-    })
   });

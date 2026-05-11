@@ -6,7 +6,7 @@ export class DeletePermissionUseCase {
   async execute(id: string) {
     const existing = await this.permissionRepo.findById(id);
     if (!existing) {
-      throw new Error("Permission tidak ditemukan");
+      throw new Error("ID Permission tidak ditemukan, gagal menghapus.");
     }
 
     return await this.permissionRepo.delete(id);

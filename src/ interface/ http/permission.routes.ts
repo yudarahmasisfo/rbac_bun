@@ -18,39 +18,35 @@ const deleteUseCase = new DeletePermissionUseCase(permissionRepo);
 export const permissionRoutes = new Elysia({ prefix: '/permissions' })
   // [GET] Ambil semua permission
   .get("/", async () => {
-    return await getUseCase.execute();
-  })
+      const data = await getUseCase.execute();
+      if (data.length === 0) {
+        return { message: "Data masih kosong di tabel permission", data: [] };
+      }
+      return { message: "Data permission berhasil dimuat", data };
+    })
 
   // [POST] Buat permission baru
-  .post("/", async ({ body, set }) => {
+.post("/", async ({ body, set }) => {
     try {
-      const result = await createUseCase.execute(body.name, body.description);
-      set.status = 201; // Created
-      return result;
+      const result = await createUseCase.execute(body);
+      set.status = 201;
+      return { message: "Permission berhasil ditambahkan", data: result };
     } catch (error: any) {
       set.status = 400;
       return { error: error.message };
     }
-  }, {
-    body: t.Object({
-      name: t.String({ minLength: 3, error: "Nama minimal 3 karakter" }),
-      description: t.Optional(t.String())
-    })
-  })
+  }, { body: t.Object({ name: t.Any(), description: t.Any() }) })
 
   // --- FITUR EDIT (UPDATE) ---
   .patch("/:id", async ({ params: { id }, body, set }) => {
     try {
-      return await updateUseCase.execute(id, body);
+      const result = await updateUseCase.execute(id, body);
+      return { message: "Permission berhasil diperbarui", data: result };
     } catch (error: any) {
       set.status = 404;
       return { error: error.message };
     }
-  }, {
-    body: t.Object({
-      name: t.Optional(t.String()),
-      description: t.Optional(t.String())
-    })
+  }, { body: t.Object({ name: t.Any(), description: t.Any() })
   })
 
   // --- FITUR HAPUS (DELETE) ---

@@ -40,31 +40,25 @@ async update(id: string, data: { name?: string; description?: string; permission
         name: data.name,
         description: data.description,
         permissions: data.permissionIds ? {
-          deleteMany: {}, // Hapus relasi lama
+          deleteMany: {},
           create: data.permissionIds.map(pId => ({
-            permission: { connect: { id: pId } } // <--- Ini yang memicu error jika ID salah
+            permission: { connect: { id: pId } }
           }))
         } : undefined
       },
       include: {
-        permissions: {
-          include: {
-            permission: true
-          }
-        }
+        permissions: { include: { permission: true } }
       }
     });
   } catch (error: any) {
-    // Cek apakah error disebabkan oleh record relasi yang tidak ditemukan (Prisma Error Code P2025 atau error message terkait connect)
-    if (error.message.includes("record(s)) was found for a nested connect")) {
-      throw new Error("permissionIds yang kamu inputkan ada salah masukkan datanya, cek kembali");
+    // Tangkap error Unique Constraint Prisma (P2002)
+    if (error.code === 'P2002') {
+      throw new Error("Gagal update: Nama role sudah ada di database.");
     }
-    
-    // Jika error lain (misal: ID Role-nya sendiri tidak ada)
-    if (error.code === 'P2025') {
-       throw new Error("Role tidak ditemukan");
+    // Tangkap error Permission ID tidak ditemukan
+    if (error.message?.includes("nested connect")) {
+      throw new Error("Beberapa Permission ID yang Anda masukkan tidak valid atau tidak ditemukan.");
     }
-
     throw error;
   }
 }

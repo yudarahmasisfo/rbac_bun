@@ -75,9 +75,12 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
     }
   }, {
     body: t.Object({
-      name: t.Optional(t.String()),
-      description: t.Optional(t.String()),
-      permissionIds: t.Optional(t.Array(t.String()))
+      // name: t.Optional(t.String()),
+      // description: t.Optional(t.String()),
+      // permissionIds: t.Optional(t.Array(t.String()))
+      name: t.Any(),
+      description: t.Any(),
+      permissionIds: t.Any()
     })
   })
   
@@ -109,7 +112,10 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
     // UBAH DI SINI: Gunakan t.Any() atau t.Object dengan t.Any() 
     // agar Joi di Use Case yang menangani pesan errornya
     body: t.Object({
-      permissionIds: t.Array(t.String())
-      //permissionIds: t.Any()
+      //tambahkan validasi untuk permissionIds di sini jika diperlukan, atau biarkan fleksibel agar Joi yang menangani validasinya
+      //name: t.Any(),
+      //description: t.Any(),
+      //permissionIds: t.Array(t.String())
+      permissionIds: t.Any()
     })
   });       

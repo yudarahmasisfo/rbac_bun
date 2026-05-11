@@ -4,11 +4,24 @@ import type { IRoleRepository } from "../../../ domain/ repositories/role.reposi
 // Validasi input agar permissionIds harus berupa Array of String (UUID)
 // 1. Definisikan Skema dengan pesan Bahasa Indonesia yang lebih lengkap
 export const assignPermissionSchema = Joi.object({
+  // tambahkan validasi untuk name dan description jika diperlukan, atau biarkan fleksibel agar Joi yang menangani validasinya
+  // Jika tidak ingin memvalidasi name dan description di sini, 
+  // pastikan validasi tersebut ada di Use Case yang menangani update role secara umum, agar konsistensi data tetap terjaga.
+  // Menambahkan validasi wajib untuk name dan description
+  //=================================================================//
+  // name: Joi.string().min(1).required().messages({
+  //   "string.empty": "Nama role tidak boleh kosong, tolong diisi.",
+  //   "any.required": "Nama role wajib diisi."
+  // }),
+  // description: Joi.string().min(1).required().messages({
+  //   "string.empty": "Deskripsi tidak boleh kosong, tolong diisi.",
+  //   "any.required": "Deskripsi wajib diisi."
+  // }),
   permissionIds: Joi.array()
     .items(
       Joi.string().uuid().messages({
         "string.uuid": "ID Permission '{#value}' tidak valid. Pastikan format UUID benar.",
-        "string.base": "ID Permission harus berupa teks."
+        "string.guid": "ID Permission '{#value}' bukan format UUID yang benar."
       })
     )
     .min(1)
@@ -33,7 +46,7 @@ export class AssignPermissionToRoleUseCase {
     });
 
     if (error) {
-      // Ambil detail error pertama
+      // Mengambil detail error pertama
       // PERBAIKAN: Gunakan Optional Chaining dan Nullish Coalescing
       const detail = error.details?.[0];  
       if (!detail) {

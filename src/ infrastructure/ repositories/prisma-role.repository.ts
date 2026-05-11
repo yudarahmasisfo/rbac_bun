@@ -9,10 +9,17 @@ export class PrismaRoleRepository implements IRoleRepository {
     });
   }
 
+  // Pastikan di prisma-role.repository.ts bagian findById seperti ini:
   async findById(id: string): Promise<Role | null> {
     return await db.role.findUnique({
       where: { id },
-      include: { permissions: { include: { permission: true } } }
+      include: {
+       permissions: {
+          include: {
+            permission: true // Agar data permission (name, desc) ikut terbawa
+          }
+        }
+      }
     });
   }
 

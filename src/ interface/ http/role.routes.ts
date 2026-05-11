@@ -4,12 +4,15 @@ import { CreateRoleUseCase } from "../../ application/ usecases/role/create-role
 import { UpdateRoleUseCase } from "../../ application/ usecases/role/update-role.usecase";
 import { DeleteRoleUseCase } from "../../ application/ usecases/role/delete-role.usecase";
 import { AssignPermissionToRoleUseCase } from "../../ application/ usecases/role/assign-permission-to-role.usecase";
+import { GetRoleDetailUseCase } from "../../ application/ usecases/role/get-role-detail.usecase";
 
 const roleRepo = new PrismaRoleRepository();
 const createRoleUseCase = new CreateRoleUseCase(roleRepo);
 const updateUseCase = new UpdateRoleUseCase(roleRepo);
 const deleteUseCase = new DeleteRoleUseCase(roleRepo);
 const assignPermissionToRoleUseCase = new AssignPermissionToRoleUseCase(roleRepo);
+const getRoleDetailUseCase = new GetRoleDetailUseCase(roleRepo);
+
 
 export const roleRoutes = new Elysia({ prefix: '/roles' })
   // 1. LIHAT SEMUA ROLE
@@ -118,4 +121,18 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
       //permissionIds: t.Array(t.String())
       permissionIds: t.Any()
     })
+  })
+  
+  // 7. LIHAT DETAIL ROLE BERDASARKAN ID (DIREVISI)
+  .get("/:id", async ({ params: { id }, set }) => {
+    try {
+      const role = await getRoleDetailUseCase.execute(id);
+      return {
+        message: "Data role berhasil ditemukan",
+        data: role
+      };
+    } catch (e: any) {
+      set.status = 404;
+      return { error: e.message };
+    }
   });       

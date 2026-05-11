@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia";
 import { PrismaPermissionRepository } from "../../ infrastructure/ repositories/prisma-permission.repository";
-import { GetPermissionsUseCase } from "../../ application/ usecases/permission/get-permissions.usecase";
+import { GetPermissionDetailUseCase, GetPermissionsUseCase } from "../../ application/ usecases/permission/get-permissions.usecase";
 import { CreatePermissionUseCase } from "../../ application/ usecases/permission/create-permission.usecase";
 import { UpdatePermissionUseCase } from "../../ application/ usecases/permission/update-permission.usecase";
 import { DeletePermissionUseCase } from "../../ application/ usecases/permission/delete-permission.usecase";
@@ -14,9 +14,11 @@ const getUseCase = new GetPermissionsUseCase(permissionRepo);
 const createUseCase = new CreatePermissionUseCase(permissionRepo);
 const updateUseCase = new UpdatePermissionUseCase(permissionRepo);
 const deleteUseCase = new DeletePermissionUseCase(permissionRepo);
+const getDetailUseCase = new GetPermissionDetailUseCase(permissionRepo);
 
 export const permissionRoutes = new Elysia({ prefix: '/permissions' })
   // [GET] Ambil semua permission
+  
   .get("/", async () => {
       const data = await getUseCase.execute();
       if (data.length === 0) {
@@ -55,6 +57,21 @@ export const permissionRoutes = new Elysia({ prefix: '/permissions' })
       await deleteUseCase.execute(id);
       return { message: "Permission berhasil dihapus" };
     } catch (error: any) {
+      set.status = 404;
+      return { error: error.message };
+    }
+  })
+  
+  // --- LIHAT DETAIL PERMISSION (BERDASARKAN UUID) ---
+  .get("/:id", async ({ params: { id }, set }) => {
+    try {
+      const data = await getDetailUseCase.execute(id);
+      return {
+        message: "Data permission berhasil ditemukan",
+        data: data
+      };
+    } catch (error: any) {
+      // Jika UUID tidak ditemukan atau format salah
       set.status = 404;
       return { error: error.message };
     }

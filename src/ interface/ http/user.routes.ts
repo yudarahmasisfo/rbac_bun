@@ -5,6 +5,7 @@ import { UpdateUserUseCase } from "../../ application/ usecases/user/update-user
 import { DeleteUserUseCase } from "../../ application/ usecases/user/delete-user.usecase";
 import { GetAllUsersUseCase } from "../../ application/ usecases/user/get-all-users.usecase";
 import { AssignRoleUseCase } from "../../ application/ usecases/user/assign-role.usecase";
+import { GetUserDetailUseCase } from "../../ application/ usecases/user/get-user-detail.usecase";
 
 
 const userRepo = new PrismaUserRepository();
@@ -13,6 +14,7 @@ const updateUseCase = new UpdateUserUseCase(userRepo);
 const assignRoleUseCase = new AssignRoleUseCase(userRepo);
 const deleteUseCase = new DeleteUserUseCase(userRepo);
 const getAllUsersUseCase = new GetAllUsersUseCase(userRepo);
+const getUserDetailUseCase = new GetUserDetailUseCase(userRepo);
 
 // Helper untuk menyembunyikan password dari response API demi keamanan
 const sanitizeUser = (user: any) => {
@@ -113,6 +115,24 @@ export const userRoutes = new Elysia({ prefix: '/users' })
       };
     } catch (e: any) {
       // Jika user tidak ditemukan, kirim status 404
+      set.status = 404;
+      return { error: e.message };
+    }
+  })
+  
+  // --- LIHAT DETAIL USER BERDASARKAN UUID ---
+  .get("/:id", async ({ params: { id }, set }) => {
+    try {
+      const user = await getUserDetailUseCase.execute(id);
+      
+      // Hapus data sensitif seperti password sebelum dikirim ke client
+      const { password, ...safeUserData } = user as any;
+
+      return {
+        message: "Data user berhasil ditemukan",
+        data: safeUserData
+      };
+    } catch (e: any) {
       set.status = 404;
       return { error: e.message };
     }

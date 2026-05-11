@@ -17,7 +17,7 @@ export class LoginUseCase {
     const user = await this.userRepo.findByUsername(value.username) as any;
     if (!user) {
       // Sesuai permintaan: Jika user tidak ada
-      throw new Error("Username dan password salah");
+      throw new Error("Username tidak ditemukan di sistem kami");
     }
 
     // 3. Verifikasi password menggunakan Bun.password

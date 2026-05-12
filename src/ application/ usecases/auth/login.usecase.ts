@@ -17,14 +17,14 @@ export class LoginUseCase {
     const user = await this.userRepo.findByUsername(value.username) as any;
     if (!user) {
       // Sesuai permintaan: Jika user tidak ada
-      throw new Error("Username tidak ditemukan di sistem kami");
+      throw new Error("Username dan password tidak ditemukan di sistem kami");
     }
 
     // 3. Verifikasi password menggunakan Bun.password
     const isPasswordValid = await Bun.password.verify(value.password, user.password);
     if (!isPasswordValid) {
       // Sesuai permintaan: Jika password tidak cocok
-      throw new Error("Password masih salah");
+      throw new Error("Username dan password tidak ditemukan di sistem kami");
     }
 
     // 4. Ekstraksi Roles & Permissions untuk Payload JWT

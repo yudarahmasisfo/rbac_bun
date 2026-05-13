@@ -1,5 +1,5 @@
 import Joi from "joi";
-import type { IRoleRepository } from "../../../ domain/ repositories/role.repository";
+import type { IRoleRepository } from "../../../domain/repositories/role.repository";
 
 // Validasi input agar permissionIds harus berupa Array of String (UUID)
 // 1. Definisikan Skema dengan pesan Bahasa Indonesia yang lebih lengkap

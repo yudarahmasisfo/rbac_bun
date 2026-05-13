@@ -1,4 +1,4 @@
-import type { IUserRepository } from "../../../ domain/ repositories/user.repository";
+import type { IUserRepository } from "../../../domain/repositories/user.repository";
 
 export class GetAllUsersUseCase {
   constructor(private userRepo: IUserRepository) {}

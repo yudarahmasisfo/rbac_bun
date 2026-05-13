@@ -1,5 +1,5 @@
-import { db } from "../ database/prisma-client";
-import type { IPermissionRepository } from "../../ domain/ repositories/permission.repository";
+import { db } from "../database/prisma-client";
+import type { IPermissionRepository } from "../../domain/repositories/permission.repository";
 import type { Permission } from "@prisma/client";
 
 export class PrismaPermissionRepository implements IPermissionRepository {

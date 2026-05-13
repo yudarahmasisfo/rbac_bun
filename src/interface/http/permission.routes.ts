@@ -1,9 +1,9 @@
 import { Elysia, t } from "elysia";
-import { PrismaPermissionRepository } from "../../ infrastructure/ repositories/prisma-permission.repository";
-import { GetPermissionDetailUseCase, GetPermissionsUseCase } from "../../ application/ usecases/permission/get-permissions.usecase";
-import { CreatePermissionUseCase } from "../../ application/ usecases/permission/create-permission.usecase";
-import { UpdatePermissionUseCase } from "../../ application/ usecases/permission/update-permission.usecase";
-import { DeletePermissionUseCase } from "../../ application/ usecases/permission/delete-permission.usecase";
+import { PrismaPermissionRepository } from "../../infrastructure/repositories/prisma-permission.repository";
+import { GetPermissionDetailUseCase, GetPermissionsUseCase } from "../../application/usecases/permission/get-permissions.usecase";
+import { CreatePermissionUseCase } from "../../application/usecases/permission/create-permission.usecase";
+import { UpdatePermissionUseCase } from "../../application/usecases/permission/update-permission.usecase";
+import { DeletePermissionUseCase } from "../../application/usecases/permission/delete-permission.usecase";
 
 
 // Dependency Injection manual untuk saat ini

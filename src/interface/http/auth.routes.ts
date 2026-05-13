@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
 import { jwt } from "@elysiajs/jwt";
-import { PrismaUserRepository } from "../../ infrastructure/ repositories/prisma-user.repository";
-import { LoginUseCase } from "../../ application/ usecases/auth/login.usecase";
+import { PrismaUserRepository } from "../../infrastructure/repositories/prisma-user.repository";
+import { LoginUseCase } from "../../application/usecases/auth/login.usecase";
 
 const userRepo = new PrismaUserRepository();
 const loginUseCase = new LoginUseCase(userRepo);

@@ -1,5 +1,5 @@
 import Joi from "joi";
-import type { IRoleRepository } from "../../../ domain/ repositories/role.repository";
+import type { IRoleRepository } from "../../../domain/repositories/role.repository";
 
 export const createRoleSchema = Joi.object({
   name: Joi.string().min(3).required().uppercase(),

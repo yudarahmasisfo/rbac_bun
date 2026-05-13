@@ -1,5 +1,5 @@
-import { db } from "../ database/prisma-client";
-import type { IUserRepository } from "../../ domain/ repositories/user.repository";
+import { db } from "../database/prisma-client";
+import type { IUserRepository } from "../../domain/repositories/user.repository";
 import type { User } from "@prisma/client";
 
 export class PrismaUserRepository implements IUserRepository {

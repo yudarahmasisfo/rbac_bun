@@ -1,6 +1,6 @@
 import Joi from "joi";
-import type { IUserRepository } from "../../../ domain/ repositories/user.repository";
-import { userSchemas } from "../../../ domain/validators/user.validator";
+import type { IUserRepository } from "../../../domain/repositories/user.repository";
+import { userSchemas } from "../../../domain/validators/user.validator";
 
 
 

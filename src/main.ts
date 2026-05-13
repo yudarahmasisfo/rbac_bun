@@ -1,11 +1,12 @@
+import "dotenv/config";
 import { Elysia } from "elysia";
 import { html } from "@elysiajs/html";
-import { permissionRoutes } from "./ interface/ http/permission.routes";
-import { roleRoutes } from "./ interface/ http/role.routes";
-import { userRoutes } from "./ interface/ http/user.routes";
-import { authRoutes } from "./ interface/ http/auth.routes";
-import { db } from "./ infrastructure/ database/prisma-client";
-import { healthHtmlTemplate } from "./ infrastructure/views/health-template";
+import { permissionRoutes } from "./interface/http/permission.routes";
+import { roleRoutes } from "./interface/http/role.routes";
+import { userRoutes } from "./interface/http/user.routes";
+import { authRoutes } from "./interface/http/auth.routes";
+import { db } from "./infrastructure/database/prisma-client";
+import { healthHtmlTemplate } from "./infrastructure/views/health-template";
 
 // Ambil port dari .env atau gunakan 3000 sebagai default
 const PORT = process.env.PORT || 3000;
@@ -49,11 +50,19 @@ const app = new Elysia()
 
   // --- API ROUTES ---
   .group("/api/v1", (app) =>
-    app.use(permissionRoutes).use(roleRoutes).use(userRoutes).use(authRoutes),
-  )
+    app
+      .use(authRoutes)
+      .use(permissionRoutes)
+      .use(roleRoutes)
+      .use(userRoutes)
+  );
 
-  // --- LISTEN ---
-  .listen(PORT);
+app.routes.forEach(route => {
+    console.log(`${route.method} ${route.path}`);
+});
+
+// --- LISTEN ---
+app.listen(PORT);
 
 console.log(`\n🦊 Elysia Research Mode is active!`);
 console.log(

@@ -1,10 +1,10 @@
 import { Elysia, t } from "elysia";
-import { PrismaRoleRepository } from "../../ infrastructure/ repositories/prisma-role.repository";
-import { CreateRoleUseCase } from "../../ application/ usecases/role/create-role.usecase";
-import { UpdateRoleUseCase } from "../../ application/ usecases/role/update-role.usecase";
-import { DeleteRoleUseCase } from "../../ application/ usecases/role/delete-role.usecase";
-import { AssignPermissionToRoleUseCase } from "../../ application/ usecases/role/assign-permission-to-role.usecase";
-import { GetRoleDetailUseCase } from "../../ application/ usecases/role/get-role-detail.usecase";
+import { PrismaRoleRepository } from "../../infrastructure/repositories/prisma-role.repository";
+import { CreateRoleUseCase } from "../../application/usecases/role/create-role.usecase";
+import { UpdateRoleUseCase } from "../../application/usecases/role/update-role.usecase";
+import { DeleteRoleUseCase } from "../../application/usecases/role/delete-role.usecase";
+import { AssignPermissionToRoleUseCase } from "../../application/usecases/role/assign-permission-to-role.usecase";
+import { GetRoleDetailUseCase } from "../../application/usecases/role/get-role-detail.usecase";
 
 const roleRepo = new PrismaRoleRepository();
 const createRoleUseCase = new CreateRoleUseCase(roleRepo);

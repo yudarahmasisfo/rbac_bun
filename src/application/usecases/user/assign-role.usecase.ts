@@ -1,5 +1,5 @@
 import Joi from "joi";
-import type { IUserRepository } from "../../../ domain/ repositories/user.repository";
+import type { IUserRepository } from "../../../domain/repositories/user.repository";
 
 export const assignRoleSchema = Joi.object({
   roleIds: Joi.array().items(Joi.string().uuid()).min(1).required().messages({

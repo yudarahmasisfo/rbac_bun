@@ -1,5 +1,5 @@
 import Joi from "joi";
-import type { IRoleRepository } from "../../../ domain/ repositories/role.repository";
+import type { IRoleRepository } from "../../../domain/repositories/role.repository";
 
 // Validasi input untuk update role
 const updateRoleSchema = Joi.object({

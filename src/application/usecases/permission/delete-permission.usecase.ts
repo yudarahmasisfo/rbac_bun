@@ -1,4 +1,4 @@
-import type { IPermissionRepository } from "../../../ domain/ repositories/permission.repository";
+import type { IPermissionRepository } from "../../../domain/repositories/permission.repository";
 
 export class DeletePermissionUseCase {
   constructor(private permissionRepo: IPermissionRepository) {}

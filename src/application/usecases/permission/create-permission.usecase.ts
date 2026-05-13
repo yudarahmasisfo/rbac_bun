@@ -1,5 +1,5 @@
 import Joi from "joi";
-import type { IPermissionRepository } from "../../../ domain/ repositories/permission.repository";
+import type { IPermissionRepository } from "../../../domain/repositories/permission.repository";
 
 const createPermissionSchema = Joi.object({
   name: Joi.string().min(3).required().messages({

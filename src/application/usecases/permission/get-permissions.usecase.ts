@@ -1,4 +1,4 @@
-import type { IPermissionRepository } from "../../../ domain/ repositories/permission.repository";
+import type { IPermissionRepository } from "../../../domain/repositories/permission.repository";
 
 // Use Case untuk mendapatkan semua permissions
 export class GetPermissionsUseCase {

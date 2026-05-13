@@ -14,10 +14,7 @@ import { AssignRoleUseCase } from "../../application/usecases/user/assign-role.u
 
 import { GetUserDetailUseCase } from "../../application/usecases/user/get-user-detail.usecase";
 
-import {
-  hasPermission,
-  rbacPlugin,
-} from "../middleware/rbac.plugin";
+import { hasPermission, rbacPlugin } from "../middleware/rbac.plugin";
 
 const userRepo = new PrismaUserRepository();
 
@@ -52,35 +49,27 @@ export const userRoutes = new Elysia()
       .get(
         "/",
         async () => {
-
           const users = await getAllUsersUseCase.execute();
 
-          return users.map((user: any) =>
-            sanitizeUser(user)
-          );
+          return users.map((user: any) => sanitizeUser(user));
         },
         {
           beforeHandle: hasPermission("USER_ALL"),
-        }
+        },
       )
 
       // GET DETAIL USER
       .get(
         "/:id",
         async ({ params: { id }, set }) => {
-
           try {
-
-            const user =
-              await getUserDetailUseCase.execute(id);
+            const user = await getUserDetailUseCase.execute(id);
 
             return {
               message: "Data user berhasil ditemukan",
               data: sanitizeUser(user),
             };
-
           } catch (e: any) {
-
             set.status = 404;
 
             return {
@@ -90,18 +79,15 @@ export const userRoutes = new Elysia()
         },
         {
           beforeHandle: hasPermission("USER_READ"),
-        }
+        },
       )
 
       // CREATE USER
       .post(
         "/",
         async ({ body, set }) => {
-
           try {
-
-            const newUser =
-              await registerUseCase.execute(body);
+            const newUser = await registerUseCase.execute(body);
 
             set.status = 201;
 
@@ -109,9 +95,7 @@ export const userRoutes = new Elysia()
               message: "User berhasil didaftarkan",
               data: sanitizeUser(newUser),
             };
-
           } catch (e: any) {
-
             set.status = 400;
 
             return {
@@ -121,26 +105,21 @@ export const userRoutes = new Elysia()
         },
         {
           beforeHandle: hasPermission("USER_CREATE"),
-        }
+        },
       )
 
       // UPDATE USER
       .patch(
         "/:id",
         async ({ params: { id }, body, set }) => {
-
           try {
-
-            const updatedUser =
-              await updateUseCase.execute(id, body);
+            const updatedUser = await updateUseCase.execute(id, body);
 
             return {
               message: "User berhasil diperbarui",
               data: sanitizeUser(updatedUser),
             };
-
           } catch (e: any) {
-
             set.status = 400;
 
             return {
@@ -158,26 +137,21 @@ export const userRoutes = new Elysia()
             password: t.Optional(t.String()),
             roleIds: t.Optional(t.Array(t.String())),
           }),
-        }
+        },
       )
 
       // ASSIGN ROLE
       .put(
         "/:id/roles",
         async ({ params: { id }, body, set }) => {
-
           try {
-
-            const updatedUser =
-              await assignRoleUseCase.execute(id, body);
+            const updatedUser = await assignRoleUseCase.execute(id, body);
 
             return {
               message: "Peran user berhasil diperbarui",
               data: sanitizeUser(updatedUser),
             };
-
           } catch (e: any) {
-
             set.status = 400;
 
             return {
@@ -186,31 +160,25 @@ export const userRoutes = new Elysia()
           }
         },
         {
-          beforeHandle:
-            hasPermission("USER_ASSIGN_ROLE"),
+          beforeHandle: hasPermission("USER_ASSIGN_ROLE"),
 
           body: t.Object({
             roleIds: t.Array(t.String()),
           }),
-        }
+        },
       )
 
       // DELETE USER
       .delete(
         "/:id",
         async ({ params: { id }, set }) => {
-
           try {
-
             await deleteUseCase.execute(id);
 
             return {
-              message:
-                "User dan relasi perannya berhasil dihapus selamanya",
+              message: "User dan relasi perannya berhasil dihapus selamanya",
             };
-
           } catch (e: any) {
-
             set.status = 404;
 
             return {
@@ -220,6 +188,6 @@ export const userRoutes = new Elysia()
         },
         {
           beforeHandle: hasPermission("USER_DELETE"),
-        }
-      )
+        },
+      ),
   );

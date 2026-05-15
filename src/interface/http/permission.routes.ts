@@ -80,7 +80,7 @@ export const permissionRoutes = new Elysia({
     },
     {
       beforeHandle:
-        hasPermission("PERMISSION_READ"),
+        hasPermission("PERMISSION_ALL"),
     }
   )
 

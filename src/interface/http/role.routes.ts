@@ -42,7 +42,7 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
       };
     },
     {
-      beforeHandle: hasPermission("ROLE_READ"),
+      beforeHandle: hasPermission("ROLE_ALL"),
     }
   )
   

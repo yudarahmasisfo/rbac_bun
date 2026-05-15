@@ -50,3 +50,18 @@ model RolePermission {
  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
  @@id([roleId, permissionId])
 }
+
+
+
+model Menu {
+  id             String   @id @default(uuid())
+  label          String
+  path           String
+  icon           String?
+  permissionName String?  // Merujuk ke nama permission di tabel Permission
+  parentId       String?  // Untuk Nested Menu (Sub-menu)
+  order          Int      @default(0)
+
+  parent         Menu?    @relation("MenuToSubmenu", fields: [parentId], references: [id], onDelete: Cascade)
+  subMenus       Menu[]   @relation("MenuToSubmenu")
+}

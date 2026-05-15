@@ -7,6 +7,7 @@ import { userRoutes } from "./interface/http/user.routes";
 import { authRoutes } from "./interface/http/auth.routes";
 import { db } from "./infrastructure/database/prisma-client";
 import { healthHtmlTemplate } from "./infrastructure/views/health-template";
+import { menuRoutes } from "./interface/http/menu.routes";
 
 // Ambil port dari .env atau gunakan 3000 sebagai default
 const PORT = process.env.PORT || 3000;
@@ -55,6 +56,7 @@ const app = new Elysia()
       .use(permissionRoutes)
       .use(roleRoutes)
       .use(userRoutes)
+      .use(menuRoutes)
   );
 
 app.routes.forEach(route => {

@@ -33,6 +33,8 @@ model Permission {
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
  roles RolePermission[]
+ // Tambahkan baris ini agar Permission tahu dia dipakai oleh Menu apa saja
+  menus       Menu[]
 }
 model UserRole {
  userId String
@@ -54,14 +56,21 @@ model RolePermission {
 
 
 model Menu {
-  id             String   @id @default(uuid())
+  id             String      @id @default(uuid())
   label          String
   path           String
   icon           String?
-  permissionName String?  // Merujuk ke nama permission di tabel Permission
-  parentId       String?  // Untuk Nested Menu (Sub-menu)
-  order          Int      @default(0)
+  order          Int         @default(0)
 
-  parent         Menu?    @relation("MenuToSubmenu", fields: [parentId], references: [id], onDelete: Cascade)
-  subMenus       Menu[]   @relation("MenuToSubmenu")
+  // Foreign Key ke tabel Permission
+  permissionId   String?     
+  permission     Permission? @relation(fields: [permissionId], references: [id], onDelete: SetNull)
+
+  // Self-Relation untuk Nested Menu
+  parentId       String?  
+  parent         Menu?       @relation("MenuToSubmenu", fields: [parentId], references: [id], onDelete: Cascade)
+  subMenus       Menu[]      @relation("MenuToSubmenu")
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 }

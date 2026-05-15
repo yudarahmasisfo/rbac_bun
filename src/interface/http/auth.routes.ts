@@ -12,7 +12,7 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
     jwt({
       name: 'jwt',
       // Mengambil secret dari .env
-      secret: process.env.JWT_SECRET || 'fallback_secret_jika_env_lupa_diset', // Ganti dengan string yang sangat kuat di .env
+      secret: process.env.JWT_SECRET || 'fallback', // Ganti dengan string yang sangat kuat di .env
       // Mengambil durasi exp dari .env
       exp: process.env.JWT_EXP || '1d' // Token berlaku selama 7 hari
     })

@@ -1,12 +1,13 @@
 // rbac.plugin.ts
 import { Elysia } from "elysia";
 import { jwt } from "@elysiajs/jwt";
+import { appConfig } from "../../config/app.config";
 
 export const rbacPlugin = new Elysia({ name: "rbac-plugin" })
   .use(
     jwt({
       name: "jwt",
-      secret: process.env.JWT_SECRET || "fallback",
+      secret: appConfig.jwt.secret,
     })
   )
   .derive({ as: 'global' }, async ({ jwt, headers }) => {
@@ -62,6 +63,12 @@ export const hasPermission = (permission: string) => {
     if (!user) {
       set.status = 401;
       return { error: "Sesi tidak valid." };
+    }
+
+    // 3. Bypass jika user adalah SUPERADMIN
+    const roleIds = Array.isArray(user.roleIds) ? user.roleIds : [];
+    if (roleIds.includes(appConfig.superAdminRoleId)) {
+      return;
     }
 
     // 3. Cek Permission (seperti biasa)

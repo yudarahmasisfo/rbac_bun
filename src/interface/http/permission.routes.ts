@@ -79,6 +79,10 @@ export const permissionRoutes = new Elysia({
       };
     },
     {
+      detail: {
+        summary: "Daftar Semua Permission",
+        tags: ["Permissions"]
+      },
       beforeHandle:
         hasPermission("PERMISSION_ALL"),
     }
@@ -112,6 +116,10 @@ export const permissionRoutes = new Elysia({
       }
     },
     {
+      detail: {
+        summary: "Detail Permission",
+        tags: ["Permissions"]
+      },
       beforeHandle:
         hasPermission("PERMISSION_READ"),
     }
@@ -147,12 +155,21 @@ export const permissionRoutes = new Elysia({
       }
     },
     {
+      detail: {
+        summary: "Tambah Permission Baru",
+        tags: ["Permissions"]
+      },
       beforeHandle:
         hasPermission("PERMISSION_CREATE"),
 
       body: t.Object({
-        name: t.String(),
-        description: t.Optional(t.String()),
+        name: t.String({ 
+          description: "Nama unik permission",
+          examples: ["USER_CREATE"] 
+        }),
+        description: t.Optional(t.String({ 
+          description: "Penjelasan fungsi permission" 
+        })),
       }),
     }
   )
@@ -185,12 +202,16 @@ export const permissionRoutes = new Elysia({
       }
     },
     {
+      detail: {
+        summary: "Update Permission",
+        tags: ["Permissions"]
+      },
       beforeHandle:
         hasPermission("PERMISSION_UPDATE"),
 
       body: t.Object({
-        name: t.Optional(t.String()),
-        description: t.Optional(t.String()),
+        name: t.Optional(t.String({ description: "Ubah nama" })),
+        description: t.Optional(t.String({ description: "Ubah deskripsi" })),
       }),
     }
   )
@@ -221,6 +242,10 @@ export const permissionRoutes = new Elysia({
       }
     },
     {
+      detail: {
+        summary: "Hapus Permission",
+        tags: ["Permissions"]
+      },
       beforeHandle:
         hasPermission("PERMISSION_DELETE"),
     }

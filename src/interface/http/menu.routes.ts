@@ -1,4 +1,4 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { MenuRepository } from "../../infrastructure/repositories/menu.repository";
 import { GetSidebarUseCase } from "../../application/usecases/menu/get-sidebar.usecase";
 import { hasPermission, rbacPlugin } from "../middleware/rbac.plugin";
@@ -7,6 +7,7 @@ import { GetMenusUseCase } from "../../application/usecases/menu/get-menus.useca
 import { GetMenuByIdUseCase } from "../../application/usecases/menu/get-menu-by-id.usecase";
 import { CreateMenuUseCase } from "../../application/usecases/menu/create-menu.usecase";
 import { UpdateMenuUseCase } from "../../application/usecases/menu/update-menu.usecase";
+import { appConfig } from "../../config/app.config";
 
 // Inisialisasi Use Case & Repository
 const menuRepo = new MenuRepository();
@@ -34,29 +35,19 @@ export const menuRoutes = new Elysia({ prefix: '/menus' })
    */
   .use(rbacPlugin)
   
-  .get("/", async ({ user, set }: any) => {
-    // 1. Validasi keberadaan user (Defense in depth)
-    if (!user) {
-      set.status = 401;
-      return { 
-        success: false,
-        error: "Sesi berakhir atau token tidak valid." 
-      };
-    }
-
+  // 1. GET SIDEBAR (Berdasarkan permission user yang login)
+  .get("/", async ({ user, set }) => {
     try {
       /**
-       * 2. AMBIL PERMISSION IDS (UUID)
+       * AMBIL PERMISSION IDS (UUID)
        * Kita menggunakan 'permissionIds' karena MenuRepository sekarang 
        * memfilter berdasarkan UUID di database, bukan lagi nama string.
        */
       const permissionIds = (user as any).permissionIds || [];
+      const roleIds = (user as any).roleIds || []; // Ambil ID role dari payload
+      const isSuperAdmin = roleIds.includes(appConfig.superAdminRoleId); // Cek berdasarkan ID role
       
-      /**
-       * 3. EKSEKUSI USE CASE
-       * Mengirimkan array UUID ke use case untuk mendapatkan struktur menu bertingkat.
-       */
-      const sidebarData = await getSidebarUseCase.execute(permissionIds);
+      const sidebarData = await getSidebarUseCase.execute(permissionIds, isSuperAdmin);
 
       return {
         success: true,
@@ -71,68 +62,161 @@ export const menuRoutes = new Elysia({ prefix: '/menus' })
         error: "Gagal memproses data menu: " + error.message 
       };
     }
+  }, {
+    detail: {
+      summary: "Ambil Struktur Sidebar",
+      description: "Mengambil menu dalam bentuk struktur pohon (Tree) sesuai hak akses user.",
+      tags: ["Menus"]
+    },
+    beforeHandle: hasPermission("MENU_READ")
   })
 
+  // 2. GET ALL MENUS (Flat list)
   .get("/all", async () => {
-    return await getMenusUseCase.execute();
+    const menus = await getMenusUseCase.execute();
+    return {
+      success: true,
+      data: menus
+    };
+  }, {
+    detail: {
+      summary: "List Semua Menu (Flat)",
+      description: "Mengambil semua menu dalam bentuk list datar tanpa filter permission.",
+      tags: ["Menus"]
+    },
+    beforeHandle: hasPermission("MENU_ALL")
   })
 
-  .get(
-    "/:id",
-
-    async ({ params }: any) => {
-      return await getMenuByIdUseCase.execute(
-        params.id
-      );
+  // 3. GET MENU BY ID
+  .get("/:id", async ({ params: { id } }) => {
+      const menu = await getMenuByIdUseCase.execute(id);
+      return {
+        success: true,
+        data: menu
+      };
+    }, {
+      detail: {
+        summary: "Detail Menu",
+        tags: ["Menus"]
+      },
+      beforeHandle: hasPermission("MENU_READ")
     }
   )
 
+  // 4. CREATE MENU
   .post(
     "/",
-
-    hasPermission("create_menu"),
-
-    async ({
-      body,
-    }: {
-      body: any
-    }) => {
-
-      return await createMenuUseCase.execute(
-        body
-      );
+    async ({ body, set }) => {
+      try {
+        const result = await createMenuUseCase.execute(body);
+        set.status = 201;
+        return {
+          success: true,
+          message: "Menu berhasil dibuat",
+          data: result
+        };
+      } catch (error: any) {
+        set.status = 400;
+        if (error?.code === "P2003") {
+          return { success: false, error: "PermissionId atau ParentId tidak valid." };
+        }
+        return {
+          success: false,
+          error: error?.message || "Gagal membuat menu."
+        };
+      }
+    },
+    {
+      beforeHandle: hasPermission("MENU_CREATE"),
+      detail: {
+        summary: "Membuat Menu Baru",
+        tags: ["Menus"],
+        description: "Endpoint ini digunakan untuk menambahkan menu atau sub-menu baru ke dalam sistem."
+      },
+      body: t.Object({
+        label: t.String({ 
+          description: "Label teks yang akan ditampilkan pada UI sidebar",
+          examples: ["Manajemen User", "Dashboard Settings"]
+        }),
+        path: t.String({ 
+          description: "Rute URL atau path navigasi menu",
+          examples: ["/admin/users", "/dashboard"]
+        }),
+        icon: t.Optional(t.String({ 
+          description: "Nama class icon (misal: FontAwesome atau Lucide)",
+          examples: ["user-icon", "home"]
+        })),
+        order: t.Number({ 
+          description: "Urutan tampilan menu (angka lebih kecil muncul lebih atas)",
+          default: 0
+        }),
+        parentId: t.Optional(t.Nullable(t.String({ 
+          description: "ID UUID dari menu induk jika ini adalah sub-menu" 
+        }))),
+        permissionId: t.Optional(t.Nullable(t.String({ 
+          description: "ID UUID dari permission yang dibutuhkan untuk melihat menu ini" 
+        }))),
+      })
     }
   )
 
+  // 5. UPDATE MENU
   .put(
     "/:id",
-
-    hasPermission("update_menu"),
-
-    async ({
-      params,
-      body,
-    }: {
-      params: { id: string },
-      body: any
-    }) => {
-
-      return await updateMenuUseCase.execute(
-        params.id,
-        body
-      );
+    async ({ params: { id }, body, set }) => {
+      try {
+        const result = await updateMenuUseCase.execute(id, body);
+        return {
+          success: true,
+          message: "Menu berhasil diperbarui",
+          data: result
+        };
+      } catch (error: any) {
+        set.status = 400;
+        if (error?.code === "P2003") {
+          return { success: false, error: "PermissionId atau ParentId tidak valid." };
+        }
+        set.status = 404;
+        return { success: false, error: error.message };
+      }
+    },
+    {
+      beforeHandle: hasPermission("MENU_UPDATE"),
+      detail: {
+        summary: "Memperbarui Data Menu",
+        tags: ["Menus"],
+        description: "Mengubah informasi menu berdasarkan ID. Field yang dikirim bersifat opsional."
+      },
+      body: t.Object({
+        label: t.Optional(t.String({ description: "Label teks baru untuk menu" })),
+        path: t.Optional(t.String({ description: "URL path baru" })),
+        icon: t.Optional(t.String({ description: "Nama class icon baru" })),
+        order: t.Optional(t.Number({ description: "Urutan tampilan baru" })),
+        parentId: t.Optional(t.Nullable(t.String({ description: "ID Parent baru (UUID)" }))),
+        permissionId: t.Optional(t.Nullable(t.String({ description: "ID Permission baru (UUID)" }))),
+      })
     }
   )
 
-  .delete(
-    "/:id",
-
-    hasPermission("delete_menu"),
-
-    async ({ params }: any) => {
-
-      return await deleteMenuUseCase.execute(
-        params.id
-      );
+  // 6. DELETE MENU
+  .delete("/:id", async ({ params: { id }, set }) => {
+    try {
+      await deleteMenuUseCase.execute(id);
+      return {
+        success: true,
+        message: "Menu berhasil dihapus"
+      };
+    } catch (error: any) {
+      set.status = 404;
+      return {
+        success: false,
+        error: error.message
+      };
     }
-  );
+  }, {
+    detail: {
+      summary: "Hapus Menu",
+      tags: ["Menus"]
+    },
+    beforeHandle: hasPermission("MENU_DELETE")
+  });

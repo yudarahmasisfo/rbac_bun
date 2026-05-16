@@ -42,6 +42,10 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
       };
     },
     {
+      detail: {
+        summary: "Daftar Semua Role",
+        tags: ["Roles"]
+      },
       beforeHandle: hasPermission("ROLE_ALL"),
     }
   )
@@ -71,6 +75,10 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
       }
     },
     {
+      detail: {
+        summary: "Detail Role",
+        tags: ["Roles"]
+      },
       beforeHandle: hasPermission("ROLE_READ"),
     }
   )
@@ -102,12 +110,18 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
       }
     },
     {
+      detail: {
+        summary: "Tambah Role Baru",
+        tags: ["Roles"]
+      },
       beforeHandle: hasPermission("ROLE_CREATE"),
 
       body: t.Object({
-        name: t.String(),
-        description: t.Optional(t.String()),
-        permissionIds: t.Array(t.String()),
+        name: t.String({ description: "Nama role", examples: ["ADMIN"] }),
+        description: t.Optional(t.String({ description: "Deskripsi peran" })),
+        permissionIds: t.Array(t.String({ description: "Array ID Permission (UUID)" }), {
+          description: "Berikan minimal 1 permission"
+        }),
       }),
     }
   )
@@ -138,14 +152,16 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
       }
     },
     {
+      detail: {
+        summary: "Update Data Role",
+        tags: ["Roles"]
+      },
       beforeHandle: hasPermission("ROLE_UPDATE"),
 
       body: t.Object({
-        name: t.Optional(t.String()),
-        description: t.Optional(t.String()),
-        permissionIds: t.Optional(
-          t.Array(t.String())
-        ),
+        name: t.Optional(t.String({ description: "Nama baru" })),
+        description: t.Optional(t.String({ description: "Deskripsi baru" })),
+        permissionIds: t.Optional(t.Array(t.String({ description: "Ganti daftar permission" }))),
       }),
     }
   )
@@ -174,6 +190,10 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
       }
     },
     {
+      detail: {
+        summary: "Hapus Role",
+        tags: ["Roles"]
+      },
       beforeHandle: hasPermission("ROLE_DELETE"),
     }
   )
@@ -207,11 +227,16 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
       }
     },
     {
+      detail: {
+        summary: "Ganti Permission pada Role",
+        description: "Khusus untuk memperbarui daftar izin tanpa mengubah nama role.",
+        tags: ["Roles"]
+      },
       beforeHandle:
         hasPermission("ROLE_ASSIGN_PERMISSION"),
 
       body: t.Object({
-        permissionIds: t.Array(t.String()),
+        permissionIds: t.Array(t.String({ description: "Array UUID Permission" })),
       }),
     }
   );

@@ -54,6 +54,10 @@ export const userRoutes = new Elysia()
           return users.map((user: any) => sanitizeUser(user));
         },
         {
+          detail: {
+            summary: "Daftar Semua Pengguna",
+            tags: ["Users"],
+          },
           beforeHandle: hasPermission("USER_ALL"),
         },
       )
@@ -78,6 +82,10 @@ export const userRoutes = new Elysia()
           }
         },
         {
+          detail: {
+            summary: "Detail Pengguna",
+            tags: ["Users"],
+          },
           beforeHandle: hasPermission("USER_READ"),
         },
       )
@@ -104,7 +112,34 @@ export const userRoutes = new Elysia()
           }
         },
         {
+          detail: {
+            summary: "Registrasi Pengguna Baru",
+            description: "Membuat akun user baru dan langsung memberikan role.",
+            tags: ["Users"],
+          },
           beforeHandle: hasPermission("USER_CREATE"),
+          body: t.Object({
+            username: t.String({ 
+              description: "Username unik untuk login",
+              examples: ["yudapratama"] 
+            }),
+            name: t.String({ 
+              description: "Nama lengkap pengguna",
+              examples: ["Yuda Pratama"] 
+            }),
+            email: t.String({ 
+              description: "Alamat email aktif",
+              format: "email",
+              examples: ["yuda@example.com"] 
+            }),
+            password: t.String({ 
+              description: "Password minimal 8 karakter",
+              examples: ["password123"] 
+            }),
+            roleIds: t.Array(t.String({ description: "Daftar ID Role (UUID)" }), {
+              description: "Minimal harus menyertakan 1 Role ID"
+            }),
+          })
         },
       )
 
@@ -128,14 +163,19 @@ export const userRoutes = new Elysia()
           }
         },
         {
+          detail: {
+            summary: "Update Data Pengguna",
+            description: "Memperbarui informasi profil atau password user.",
+            tags: ["Users"],
+          },
           beforeHandle: hasPermission("USER_UPDATE"),
 
           body: t.Object({
-            username: t.Optional(t.String()),
-            name: t.Optional(t.String()),
-            email: t.Optional(t.String()),
-            password: t.Optional(t.String()),
-            roleIds: t.Optional(t.Array(t.String())),
+            username: t.Optional(t.String({ description: "Username baru" })),
+            name: t.Optional(t.String({ description: "Nama lengkap baru" })),
+            email: t.Optional(t.String({ format: "email", description: "Email baru" })),
+            password: t.Optional(t.String({ description: "Password baru (jika ingin diubah)" })),
+            roleIds: t.Optional(t.Array(t.String({ description: "Update daftar Role ID" }))),
           }),
         },
       )
@@ -160,10 +200,17 @@ export const userRoutes = new Elysia()
           }
         },
         {
+          detail: {
+            summary: "Ganti Role Pengguna",
+            description: "Menghapus role lama dan menggantinya dengan daftar role baru.",
+            tags: ["Users"],
+          },
           beforeHandle: hasPermission("USER_ASSIGN_ROLE"),
 
           body: t.Object({
-            roleIds: t.Array(t.String()),
+            roleIds: t.Array(t.String({ 
+              description: "Array UUID dari tabel Role" 
+            })),
           }),
         },
       )
@@ -187,6 +234,11 @@ export const userRoutes = new Elysia()
           }
         },
         {
+          detail: {
+            summary: "Hapus Pengguna",
+            description: "Menghapus user secara permanen beserta relasi role-nya.",
+            tags: ["Users"],
+          },
           beforeHandle: hasPermission("USER_DELETE"),
         },
       ),

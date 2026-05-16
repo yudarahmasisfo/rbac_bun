@@ -35,4 +35,20 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
       set.status = 401;
       return { error: e.message };
     }
+  }, {
+    detail: {
+      summary: "Login Pengguna",
+      description: "Gunakan kredensial Anda untuk mendapatkan token akses.",
+      tags: ["Authentication"]
+    },
+    body: t.Object({
+      username: t.String({ 
+        description: "Username yang terdaftar",
+        examples: ["admin"] 
+      }),
+      password: t.String({ 
+        description: "Password akun",
+        examples: ["password123"]
+      })
+    })
   });

@@ -34,6 +34,9 @@ export class LoginUseCase {
     // Mengambil semua nama role
     const roles = user.roles?.map((ur: any) => ur.role?.name) || [];
 
+    // Mengambil semua ID role
+    const roleIds: string[] = user.roles?.map((ur: any) => ur.role?.id) || [];
+
     // Mengambil semua nama permission dari tiap role, lalu hilangkan duplikasi (Unique)
     // --- PERBAIKAN STRATEGI PERMISSIONS ---
 
@@ -63,6 +66,7 @@ export class LoginUseCase {
       username: user.username as string,
       name: user.name || "",
       roles: roles as string[],
+      roleIds: roleIds, // Tambahkan ID role ke payload
       permissions: permissionNames, // Digunakan oleh rbac.plugin.ts (hasPermission)
       permissionIds: permissionIds, // Digunakan oleh menu.repository.ts
     };

@@ -2,6 +2,7 @@ import "dotenv/config";
 import { Elysia, t } from "elysia";
 import { html } from "@elysiajs/html";
 import { swagger } from "@elysiajs/swagger";
+import { rateLimit } from 'elysia-rate-limit';
 import { permissionRoutes } from "./interface/http/permission.routes";
 import { roleRoutes } from "./interface/http/role.routes";
 import { userRoutes } from "./interface/http/user.routes";
@@ -20,6 +21,17 @@ const app = new Elysia({
   }
 })
   .use(html()) // Aktifkan dukungan HTML
+  // --- LAPIS 1: GLOBAL RATE LIMIT ---
+  .use(
+    rateLimit({
+      max: 100, // Maksimal 100 request
+      duration: 60000, // Per 1 menit
+      errorResponse: new Response(JSON.stringify({
+        success: false,
+        error: "Terlalu banyak permintaan (Global). Silakan coba lagi nanti."
+      }), { status: 429, headers: { 'Content-Type': 'application/json' } })
+    })
+  )
   .error({
     // Daftarkan tipe error kustom jika diperlukan
     NOT_FOUND: Error,

@@ -1,5 +1,6 @@
 import { Elysia, t } from "elysia";
 import { jwt } from "@elysiajs/jwt";
+import { rateLimit } from 'elysia-rate-limit';
 import { PrismaUserRepository } from "../../infrastructure/repositories/prisma-user.repository";
 import { LoginUseCase } from "../../application/usecases/auth/login.usecase";
 
@@ -7,6 +8,18 @@ const userRepo = new PrismaUserRepository();
 const loginUseCase = new LoginUseCase(userRepo);
 
 export const authRoutes = new Elysia({ prefix: '/auth' })
+  // --- LAPIS 2: SPECIFIC RATE LIMIT (LOGIN) ---
+  .use(
+    rateLimit({
+      max: 5, // Sangat ketat: hanya 5 kali percobaan
+      duration: 60000, // 1 menit (dalam milidetik)
+      generator: (request) => request.headers.get('x-forwarded-for') || 'global',
+      errorResponse: new Response(JSON.stringify({
+        success: false,
+        error: "Terlalu banyak percobaan login. Akun Anda aman, silakan coba lagi dalam 1 menit."
+      }), { status: 429, headers: { 'Content-Type': 'application/json' } })
+    })
+  )
   // Konfigurasi JWT
   .use(
     jwt({

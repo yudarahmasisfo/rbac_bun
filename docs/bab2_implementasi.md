@@ -195,6 +195,17 @@ model RolePermission {
   @@id([roleId, permissionId])
 }
 
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  username  String?
+  action    String
+  resource  String
+  targetId  String?
+  payload   String?  @db.Text
+  createdAt DateTime @default(now())
+}
+
 
 Penjelasan mendalam mengenai komponen skema diatas sebagai berikut:
     1. Blok Utama (Generator & Datasource)
@@ -1872,4 +1883,3 @@ Untuk pengembangan selanjutnya, sistem ini dapat diperluas dengan fitur seperti:
 - Logging audit
 - Multi-tenant support
 - API documentation dengan Swagger
-

@@ -1,21 +1,18 @@
-import error from "elysia";
-
 export const rbacMiddleware = (requiredPermission: string) => (context: any) => {
-  const { jwt, headers, set } = context;
+  const { accessJwt, cookie: { access_token }, set } = context;
 
   return {
     async check() {
-      // 1. Ambil token dari header Authorization: Bearer <token>
-      const authHeader = headers['authorization'];
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      // 1. Ambil token dari HttpOnly Cookie (Bukan dari Header)
+      const token = access_token.value;
+      
+      if (!token) {
         set.status = 401;
-        return { error: "Token tidak ditemukan. Silakan login terlebih dahulu." };
+        return { error: "Sesi tidak ditemukan atau telah berakhir. Silakan login kembali." };
       }
 
-      const token = authHeader.split(' ')[1];
-
       // 2. Verifikasi Token
-      const payload = await jwt.verify(token);
+      const payload = await accessJwt.verify(token);
       if (!payload) {
         set.status = 401;
         return { error: "Sesi telah berakhir atau token tidak valid." };

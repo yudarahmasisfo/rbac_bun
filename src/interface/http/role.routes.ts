@@ -181,7 +181,12 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
         hasPermission("ROLE_ASSIGN_PERMISSION"),
 
       body: t.Object({
-        permissionIds: t.Array(t.String({ description: "Array UUID Permission" })),
+        permissionIds: t.Array(t.String(), { 
+          description: "Daftar ID Permission dalam bentuk Array UUID",
+          minItems: 1 
+        }),
+      }, {
+        description: "Payload untuk update permissions role"
       }),
     }
   );

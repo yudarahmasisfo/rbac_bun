@@ -32,7 +32,7 @@ export class LoginUseCase {
 
     // 4. Ekstraksi Roles & Permissions untuk Payload JWT
     // Mengambil semua nama role
-    const roles = user.roles?.map((ur: any) => ur.role?.name) || [];
+    const roles = user.roles?.map((ur: any) => ur.role?.name).filter(Boolean) || [];
 
     // Mengambil semua ID role
     const roleIds: string[] = user.roles?.map((ur: any) => ur.role?.id) || [];

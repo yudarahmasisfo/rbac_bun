@@ -28,7 +28,7 @@ export const assignPermissionSchema = Joi.object({
     .required()
     .messages({
       "array.min": "Minimal harus pilih satu permission untuk role ini.",
-      "array.base": "permissionIds harus berupa array.",
+      "array.base": "Format data permissionIds salah, sistem mengharapkan Array.",
       "any.required": "permissionIds wajib diisi."
     })
 });

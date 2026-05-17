@@ -12,6 +12,9 @@ import { healthHtmlTemplate } from "./infrastructure/views/health-template";
 import { menuRoutes } from "./interface/http/menu.routes";
 import { swaggerAuthRoutes } from "./interface/http/swagger-auth.routes";
 import { appConfig } from "./config/app.config";
+import { AuditLogRepository } from "./infrastructure/repositories/audit-log.repository";
+
+const auditLogRepo = new AuditLogRepository();
 
 const app = new Elysia({
   cookie: {
@@ -24,6 +27,10 @@ const app = new Elysia({
   // --- LAPIS 1: GLOBAL RATE LIMIT ---
   .use(
     rateLimit({
+      // Tambahkan generator untuk membantu mendeteksi IP jika otomatis gagal
+      generator: (request, server) => {
+        return request?.headers?.get('x-forwarded-for')?.split(',')[0] || server?.hostname || 'unknown-client';
+      },
       max: 100, // Maksimal 100 request
       duration: 60000, // Per 1 menit
       errorResponse: new Response(JSON.stringify({
@@ -44,8 +51,18 @@ const app = new Elysia({
     
     switch (code) {
       case 'VALIDATION':
-      case 'VALIDATION_ERROR':
         set.status = 400;
+        // Mencoba mengambil pesan error yang lebih spesifik dari Elysia Validation
+        if ('all' in error) {
+           return { 
+             success: false, 
+             error: "Input tidak valid", 
+             details: (error as any).all.map((err: any) => ({
+               path: err.path.replace('/', ''),
+               message: err.message
+             }))
+           };
+        }
         break;
       case 'NOT_FOUND':
         set.status = 404;
@@ -59,6 +76,54 @@ const app = new Elysia({
     }
 
     return { success: false, error: message };
+  })
+  // --- GLOBAL AUDIT LOG HOOK ---
+  .onAfterResponse(async (context) => {
+    const { request, body, set } = context;
+    const user = (context as any).user;
+    const method = request.method;
+    const status = set.status as number;
+    
+    // Hanya log jika request sukses dan merupakan metode modifikasi data
+    const loggableMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
+    
+    if (loggableMethods.includes(method) && status >= 200 && status < 300) {
+      // Gunakan base URL 'http://localhost' untuk menghindari error jika request.url kosong atau relatif
+      const url = new URL(request.url || '/', 'http://localhost');
+      const pathParts = url.pathname.split('/');
+      
+      // Deteksi resource dari URL (misal: /api/v1/users -> Resource: users)
+      const resource = pathParts[3] || 'unknown';
+      const targetId = pathParts[4] || null;
+
+      // Map method ke action
+      const actionMap: Record<string, string> = {
+        'POST': 'CREATE',
+        'PUT': 'UPDATE',
+        'PATCH': 'UPDATE',
+        'DELETE': 'DELETE'
+      };
+
+      // Filter sensitive data dari payload sebelum disimpan ke audit log
+      let filteredPayload = body;
+      if (body && typeof body === 'object') {
+        const sensitiveFields = ['password', 'token', 'secret'];
+        const tempBody = { ...body as Record<string, any> };
+        sensitiveFields.forEach(field => {
+          if (field in tempBody) tempBody[field] = '[REDACTED]';
+        });
+        filteredPayload = tempBody;
+      }
+
+      await auditLogRepo.create({
+        userId: (user as any)?.id,
+        username: (user as any)?.username,
+        action: actionMap[method] || 'UNKNOWN',
+        resource: resource.toUpperCase(),
+        targetId: targetId,
+        payload: filteredPayload ? JSON.stringify(filteredPayload) : undefined,
+      });
+    }
   })
   
   // --- HEALTH CHECK & LANDING PAGE ---

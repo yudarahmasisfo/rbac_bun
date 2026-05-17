@@ -15,6 +15,7 @@ model User {
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
  roles UserRole[]
+ refreshTokens RefreshToken[]
 }
 
 model Role {
@@ -73,4 +74,29 @@ model Menu {
 
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  username  String?
+  action    String   // CREATE, UPDATE, DELETE, dll
+  resource  String   // USER, ROLE, PERMISSION, dll
+  targetId  String?  // ID dari resource yang dimodifikasi
+  payload   String?  @db.Text // Data JSON (sudah difilter di level aplikasi)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([resource])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique @db.VarChar(500)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }

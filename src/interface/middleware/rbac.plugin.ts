@@ -6,38 +6,34 @@ import { appConfig } from "../../config/app.config";
 export const rbacPlugin = new Elysia({ name: "rbac-plugin" })
   .use(
     jwt({
-      name: "jwt",
-      secret: appConfig.jwt.secret,
+      name: "accessJwt",
+      secret: appConfig.jwt.secret, // Menggunakan secret untuk Access Token dari appConfig
     })
   )
-  .derive({ as: 'global' }, async ({ jwt, headers }) => {
-    const authHeader = headers["authorization"] || headers["Authorization"];
+  .derive({ as: 'global' }, async ({ accessJwt, cookie, headers }) => {
+    // 1. Ambil token dari Cookie ATAU Header Authorization (Bearer)
+    // Ini agar Swagger (Bearer) dan Frontend (Cookie) keduanya bisa bekerja.
+    let token = cookie.access_token?.value;
 
-    // Jika header sama sekali tidak ada
-    if (!authHeader) {
-      return { 
-        user: null, 
-        authError: "Token tidak ditemukan. Silakan login terlebih dahulu." 
-      };
+    if (!token && headers.authorization?.startsWith("Bearer ")) {
+      token = headers.authorization.substring(7);
     }
 
-    // Jika format bukan Bearer
-    if (!authHeader.startsWith("Bearer ")) {
+    if (!token) {
       return { 
         user: null, 
-        authError: "Format token salah. Gunakan format 'Bearer <token>'." 
+        authError: "Sesi tidak ditemukan. Silakan login terlebih dahulu." 
       };
     }
-
-    const token = authHeader.split(" ")[1];
 
     try {
-      const payload = await jwt.verify(token);
+      // 2. Verifikasi menggunakan instance accessJwt
+      const payload = await accessJwt.verify(token as string);
 
       if (!payload) {
         return { 
           user: null, 
-          authError: "Token tidak valid atau sesi telah berakhir." 
+          authError: "Sesi telah berakhir atau tidak valid. Silakan login kembali." 
         };
       }
 

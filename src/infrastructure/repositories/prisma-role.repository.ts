@@ -24,17 +24,29 @@ export class PrismaRoleRepository implements IRoleRepository {
   }
 
   async create(name: string, description: string | undefined, permissionIds: string[]): Promise<Role> {
-    return await db.role.create({
-      data: {
-        name,
-        description,
-        permissions: {
-          create: permissionIds.map(pId => ({
-            permission: { connect: { id: pId } }
-          }))
+    try {
+      return await db.role.create({
+        data: {
+          name,
+          description,
+          permissions: {
+            create: permissionIds.map(pId => ({
+              permission: { connect: { id: pId } }
+            }))
+          }
         }
+      });
+    } catch (error: any) {
+      // Tangkap error Unique Constraint (P2002) - Jika nama role sudah ada
+      if (error.code === 'P2002') {
+        throw new Error("Gagal membuat role: Nama role sudah terdaftar.");
       }
-    });
+      // Tangkap error jika ID Permission tidak ditemukan (P2025 atau "nested connect")
+      if (error.message?.includes("nested connect") || error.code === 'P2025') {
+        throw new Error("Satu atau lebih ID Permission tidak valid atau tidak ditemukan di sistem. Harap periksa kembali daftar permissionIds Anda.");
+      }
+      throw error;
+    }
   }
 
 // src/infrastructure/repositories/prisma-role.repository.ts

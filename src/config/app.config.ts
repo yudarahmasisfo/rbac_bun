@@ -16,6 +16,11 @@ const envVarsSchema = Joi.object({
   }),
   JWT_SECRET: Joi.string().default("fallback"),
   JWT_EXP: Joi.string().default("1d"),
+  REFRESH_JWT_SECRET: Joi.string().required().messages({
+    "any.required": "REFRESH_JWT_SECRET wajib dikonfigurasi di file .env"
+  }),
+  ACCESS_TOKEN_EXPIRATION: Joi.string().default("15m"),
+  REFRESH_TOKEN_EXPIRATION: Joi.string().default("7d"),
   PORT: Joi.number().integer().min(1000).max(65535).default(3000).messages({
     "number.base": "PORT harus berupa angka.",
     "number.min": "PORT minimal adalah 1000.",
@@ -42,6 +47,9 @@ export const appConfig = {
   port: envVars.PORT,
   jwt: {
     secret: envVars.JWT_SECRET,
+    refreshSecret: envVars.REFRESH_JWT_SECRET,
+    accessExp: envVars.ACCESS_TOKEN_EXPIRATION,
+    refreshExp: envVars.REFRESH_TOKEN_EXPIRATION,
     exp: envVars.JWT_EXP
   },
   swagger: {

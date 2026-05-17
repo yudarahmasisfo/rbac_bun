@@ -19,6 +19,10 @@ const envVarsSchema = Joi.object({
   PORT: Joi.number().integer().min(1000).max(65535).default(3000).messages({
     "number.base": "PORT harus berupa angka.",
     "number.min": "PORT minimal adalah 1000.",
+  }),
+  SWAGGER_USER: Joi.string().default("admin"),
+  SWAGGER_PASSWORD: Joi.string().required().messages({
+    "any.required": "SWAGGER_PASSWORD wajib diisi di .env untuk mengamankan dokumentasi."
   })
 }).unknown();
 
@@ -39,5 +43,9 @@ export const appConfig = {
   jwt: {
     secret: envVars.JWT_SECRET,
     exp: envVars.JWT_EXP
+  },
+  swagger: {
+    user: envVars.SWAGGER_USER,
+    password: envVars.SWAGGER_PASSWORD
   }
 };

@@ -31,12 +31,14 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
 
       if (roles.length === 0) {
         return {
+          success: true,
           message: "Data masih kosong di tabel role",
           data: [],
         };
       }
 
       return {
+        success: true,
         message: "Data role berhasil dimuat",
         data: roles,
       };
@@ -54,25 +56,14 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
   .get(
     "/:id",
     async ({ params: { id }, set }) => {
+      const role =
+        await getRoleDetailUseCase.execute(id);
 
-      try {
-
-        const role =
-          await getRoleDetailUseCase.execute(id);
-
-        return {
-          message: "Data role berhasil ditemukan",
-          data: role,
-        };
-
-      } catch (e: any) {
-
-        set.status = 404;
-
-        return {
-          error: e.message,
-        };
-      }
+      return {
+        success: true,
+        message: "Data role berhasil ditemukan",
+        data: role,
+      };
     },
     {
       detail: {
@@ -87,27 +78,16 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
 .post(
     "/",
     async ({ body, set }) => {
+      const newRole =
+        await createRoleUseCase.execute(body);
 
-      try {
+      set.status = 201;
 
-        const newRole =
-          await createRoleUseCase.execute(body);
-
-        set.status = 201;
-
-        return {
-          message: "Role berhasil ditambahkan",
-          data: newRole,
-        };
-
-      } catch (e: any) {
-
-        set.status = 400;
-
-        return {
-          error: e.message,
-        };
-      }
+      return {
+        success: true,
+        message: "Role berhasil ditambahkan",
+        data: newRole,
+      };
     },
     {
       detail: {
@@ -130,26 +110,14 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
  .patch(
     "/:id",
     async ({ params: { id }, body, set }) => {
+      const updatedRole =
+        await updateUseCase.execute(id, body);
 
-      try {
-
-        const updatedRole =
-          await updateUseCase.execute(id, body);
-
-        return {
-          message:
-            "Data update role berhasil",
-          data: updatedRole,
-        };
-
-      } catch (e: any) {
-
-        set.status = 400;
-
-        return {
-          error: e.message,
-        };
-      }
+      return {
+        success: true,
+        message: "Data update role berhasil",
+        data: updatedRole,
+      };
     },
     {
       detail: {
@@ -171,23 +139,12 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
  .delete(
     "/:id",
     async ({ params: { id }, set }) => {
+      await deleteUseCase.execute(id);
 
-      try {
-
-        await deleteUseCase.execute(id);
-
-        return {
-          message: "Role berhasil dihapus",
-        };
-
-      } catch (e: any) {
-
-        set.status = 400;
-
-        return {
-          error: e.message,
-        };
-      }
+      return {
+        success: true,
+        message: "Role berhasil dihapus",
+      };
     },
     {
       detail: {
@@ -202,29 +159,17 @@ export const roleRoutes = new Elysia({ prefix: '/roles' })
 .put(
     "/:id/permissions",
     async ({ params: { id }, body, set }) => {
+      const updatedRole =
+        await assignPermissionToRoleUseCase.execute(
+          id,
+          body
+        );
 
-      try {
-
-        const updatedRole =
-          await assignPermissionToRoleUseCase.execute(
-            id,
-            body
-          );
-
-        return {
-          message:
-            "Permission role berhasil diperbarui",
-          data: updatedRole,
-        };
-
-      } catch (e: any) {
-
-        set.status = 400;
-
-        return {
-          error: e.message,
-        };
-      }
+      return {
+        success: true,
+        message: "Permission role berhasil diperbarui",
+        data: updatedRole,
+      };
     },
     {
       detail: {

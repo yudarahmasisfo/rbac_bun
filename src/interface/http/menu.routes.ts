@@ -37,31 +37,20 @@ export const menuRoutes = new Elysia({ prefix: '/menus' })
   
   // 1. GET SIDEBAR (Berdasarkan permission user yang login)
   .get("/", async ({ user, set }) => {
-    try {
-      /**
-       * AMBIL PERMISSION IDS (UUID)
-       * Kita menggunakan 'permissionIds' karena MenuRepository sekarang 
-       * memfilter berdasarkan UUID di database, bukan lagi nama string.
-       */
-      const permissionIds = (user as any).permissionIds || [];
-      const roleIds = (user as any).roleIds || []; // Ambil ID role dari payload
-      const isSuperAdmin = roleIds.includes(appConfig.superAdminRoleId); // Cek berdasarkan ID role
-      
-      const sidebarData = await getSidebarUseCase.execute(permissionIds, isSuperAdmin);
+    /**
+     * AMBIL PERMISSION IDS (UUID)
+     */
+    const permissionIds = (user as any).permissionIds || [];
+    const roleIds = (user as any).roleIds || []; 
+    const isSuperAdmin = roleIds.includes(appConfig.superAdminRoleId); 
+    
+    const sidebarData = await getSidebarUseCase.execute(permissionIds, isSuperAdmin);
 
-      return {
-        success: true,
-        message: "Sidebar menu berhasil dimuat",
-        data: sidebarData
-      };
-      
-    } catch (error: any) {
-      set.status = 500;
-      return { 
-        success: false,
-        error: "Gagal memproses data menu: " + error.message 
-      };
-    }
+    return {
+      success: true,
+      message: "Sidebar menu berhasil dimuat",
+      data: sidebarData
+    };
   }, {
     detail: {
       summary: "Ambil Struktur Sidebar",
@@ -107,24 +96,13 @@ export const menuRoutes = new Elysia({ prefix: '/menus' })
   .post(
     "/",
     async ({ body, set }) => {
-      try {
-        const result = await createMenuUseCase.execute(body);
-        set.status = 201;
-        return {
-          success: true,
-          message: "Menu berhasil dibuat",
-          data: result
-        };
-      } catch (error: any) {
-        set.status = 400;
-        if (error?.code === "P2003") {
-          return { success: false, error: "PermissionId atau ParentId tidak valid." };
-        }
-        return {
-          success: false,
-          error: error?.message || "Gagal membuat menu."
-        };
-      }
+      const result = await createMenuUseCase.execute(body);
+      set.status = 201;
+      return {
+        success: true,
+        message: "Menu berhasil dibuat",
+        data: result
+      };
     },
     {
       beforeHandle: hasPermission("MENU_CREATE"),

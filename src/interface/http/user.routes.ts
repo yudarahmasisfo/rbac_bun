@@ -51,7 +51,11 @@ export const userRoutes = new Elysia()
         async () => {
           const users = await getAllUsersUseCase.execute();
 
-          return users.map((user: any) => sanitizeUser(user));
+          return {
+            success: true,
+            message: "Data user berhasil dimuat",
+            data: users.map((user: any) => sanitizeUser(user))
+          };
         },
         {
           detail: {
@@ -66,20 +70,13 @@ export const userRoutes = new Elysia()
       .get(
         "/:id",
         async ({ params: { id }, set }) => {
-          try {
-            const user = await getUserDetailUseCase.execute(id);
+          const user = await getUserDetailUseCase.execute(id);
 
-            return {
-              message: "Data user berhasil ditemukan",
-              data: sanitizeUser(user),
-            };
-          } catch (e: any) {
-            set.status = 404;
-
-            return {
-              error: e.message,
-            };
-          }
+          return {
+            success: true,
+            message: "Data user berhasil ditemukan",
+            data: sanitizeUser(user),
+          };
         },
         {
           detail: {
@@ -94,22 +91,15 @@ export const userRoutes = new Elysia()
       .post(
         "/",
         async ({ body, set }) => {
-          try {
-            const newUser = await registerUseCase.execute(body);
+          const newUser = await registerUseCase.execute(body);
 
-            set.status = 201;
+          set.status = 201;
 
-            return {
-              message: "User berhasil didaftarkan",
-              data: sanitizeUser(newUser),
-            };
-          } catch (e: any) {
-            set.status = 400;
-
-            return {
-              error: e.message,
-            };
-          }
+          return {
+            success: true,
+            message: "User berhasil didaftarkan",
+            data: sanitizeUser(newUser),
+          };
         },
         {
           detail: {
@@ -147,20 +137,13 @@ export const userRoutes = new Elysia()
       .patch(
         "/:id",
         async ({ params: { id }, body, set }) => {
-          try {
-            const updatedUser = await updateUseCase.execute(id, body);
+          const updatedUser = await updateUseCase.execute(id, body);
 
-            return {
-              message: "User berhasil diperbarui",
-              data: sanitizeUser(updatedUser),
-            };
-          } catch (e: any) {
-            set.status = 400;
-
-            return {
-              error: e.message,
-            };
-          }
+          return {
+            success: true,
+            message: "User berhasil diperbarui",
+            data: sanitizeUser(updatedUser),
+          };
         },
         {
           detail: {
@@ -184,20 +167,13 @@ export const userRoutes = new Elysia()
       .put(
         "/:id/roles",
         async ({ params: { id }, body, set }) => {
-          try {
-            const updatedUser = await assignRoleUseCase.execute(id, body);
+          const updatedUser = await assignRoleUseCase.execute(id, body);
 
-            return {
-              message: "Peran user berhasil diperbarui",
-              data: sanitizeUser(updatedUser),
-            };
-          } catch (e: any) {
-            set.status = 400;
-
-            return {
-              error: e.message,
-            };
-          }
+          return {
+            success: true,
+            message: "Peran user berhasil diperbarui",
+            data: sanitizeUser(updatedUser),
+          };
         },
         {
           detail: {
@@ -219,19 +195,12 @@ export const userRoutes = new Elysia()
       .delete(
         "/:id",
         async ({ params: { id }, set }) => {
-          try {
-            await deleteUseCase.execute(id);
+          await deleteUseCase.execute(id);
 
-            return {
-              message: "User dan relasi perannya berhasil dihapus selamanya",
-            };
-          } catch (e: any) {
-            set.status = 404;
-
-            return {
-              error: e.message,
-            };
-          }
+          return {
+            success: true,
+            message: "User dan relasi perannya berhasil dihapus selamanya",
+          };
         },
         {
           detail: {

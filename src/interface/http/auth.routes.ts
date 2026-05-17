@@ -18,23 +18,19 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
     })
   )
   .post("/login", async ({ body, jwt, set }) => {
-    try {
-      // 1. Jalankan logika login
-      const userPayload = await loginUseCase.execute(body);
+    // 1. Jalankan logika login
+    const userPayload = await loginUseCase.execute(body);
 
-      // 2. Generate Token JWT
-      const token = await jwt.sign(userPayload as any); // Cast ke any karena payload bisa berisi data custom       
+    // 2. Generate Token JWT
+    const token = await jwt.sign(userPayload as any); // Cast ke any karena payload bisa berisi data custom       
 
-        // 3. Kembalikan token dan data user (tanpa password) ke client
-      return {
-        message: "Login berhasil",
-        accessToken: token,
-        user: userPayload
-      };
-    } catch (e: any) {
-      set.status = 401;
-      return { error: e.message };
-    }
+    // 3. Kembalikan token dan data user (tanpa password) ke client
+    return {
+      success: true,
+      message: "Login berhasil",
+      accessToken: token,
+      user: userPayload
+    };
   }, {
     detail: {
       summary: "Login Pengguna",

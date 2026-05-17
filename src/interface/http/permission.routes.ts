@@ -66,6 +66,7 @@ export const permissionRoutes = new Elysia({
       if (data.length === 0) {
 
         return {
+          success: true,
           message:
             "Data masih kosong di tabel permission",
           data: [],
@@ -73,6 +74,7 @@ export const permissionRoutes = new Elysia({
       }
 
       return {
+        success: true,
         message:
           "Data permission berhasil dimuat",
         data,
@@ -94,26 +96,15 @@ export const permissionRoutes = new Elysia({
   .get(
     "/:id",
     async ({ params: { id }, set }) => {
+      const data =
+        await getDetailUseCase.execute(id);
 
-      try {
-
-        const data =
-          await getDetailUseCase.execute(id);
-
-        return {
-          message:
-            "Data permission berhasil ditemukan",
-          data,
-        };
-
-      } catch (error: any) {
-
-        set.status = 404;
-
-        return {
-          error: error.message,
-        };
-      }
+      return {
+        success: true,
+        message:
+          "Data permission berhasil ditemukan",
+        data,
+      };
     },
     {
       detail: {
@@ -131,28 +122,17 @@ export const permissionRoutes = new Elysia({
   .post(
     "/",
     async ({ body, set }) => {
+      const result =
+        await createUseCase.execute(body);
 
-      try {
+      set.status = 201;
 
-        const result =
-          await createUseCase.execute(body);
-
-        set.status = 201;
-
-        return {
-          message:
-            "Permission berhasil ditambahkan",
-          data: result,
-        };
-
-      } catch (error: any) {
-
-        set.status = 400;
-
-        return {
-          error: error.message,
-        };
-      }
+      return {
+        success: true,
+        message:
+          "Permission berhasil ditambahkan",
+        data: result,
+      };
     },
     {
       detail: {
@@ -180,26 +160,15 @@ export const permissionRoutes = new Elysia({
   .patch(
     "/:id",
     async ({ params: { id }, body, set }) => {
+      const result =
+        await updateUseCase.execute(id, body);
 
-      try {
-
-        const result =
-          await updateUseCase.execute(id, body);
-
-        return {
-          message:
-            "Permission berhasil diperbarui",
-          data: result,
-        };
-
-      } catch (error: any) {
-
-        set.status = 404;
-
-        return {
-          error: error.message,
-        };
-      }
+      return {
+        success: true,
+        message:
+          "Permission berhasil diperbarui",
+        data: result,
+      };
     },
     {
       detail: {
@@ -222,24 +191,13 @@ export const permissionRoutes = new Elysia({
   .delete(
     "/:id",
     async ({ params: { id }, set }) => {
+      await deleteUseCase.execute(id);
 
-      try {
-
-        await deleteUseCase.execute(id);
-
-        return {
-          message:
-            "Permission berhasil dihapus",
-        };
-
-      } catch (error: any) {
-
-        set.status = 404;
-
-        return {
-          error: error.message,
-        };
-      }
+      return {
+        success: true,
+        message:
+          "Permission berhasil dihapus",
+      };
     },
     {
       detail: {

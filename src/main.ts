@@ -89,7 +89,7 @@ const app = new Elysia({
     
     if (loggableMethods.includes(method) && status >= 200 && status < 300) {
       // Gunakan base URL 'http://localhost' untuk menghindari error jika request.url kosong atau relatif
-      const url = new URL(request.url || '/', 'http://localhost');
+      const url = new URL(request.url || '/', appConfig.appUrl);
       const pathParts = url.pathname.split('/');
       
       // Deteksi resource dari URL (misal: /api/v1/users -> Resource: users)
@@ -235,10 +235,10 @@ app.routes.forEach(route => {
 // --- LISTEN ---
 app.listen(appConfig.port);
 
-console.log(`\n🦊 Elysia Research Mode is active!`);
+console.log(`\n🦊 Elysia RBAC Mode is active!`);
 console.log(
-  `🚀 Server running at: http://${app.server?.hostname}:${app.server?.port}`,
+  `🚀 Server running at: ${appConfig.appUrl}`,
 );
 console.log(
-  `🔗 Health Check: http://${app.server?.hostname}:${app.server?.port}/`,
+  `🔗 Health Check: ${appConfig.appUrl}/`,
 );

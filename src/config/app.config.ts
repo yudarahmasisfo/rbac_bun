@@ -1,6 +1,24 @@
 import Joi from "joi";
 
 /**
+ * Helper untuk mengubah format waktu (misal: "15m", "7d") menjadi detik (number)
+ * Digunakan untuk menyinkronkan JWT Expiration dengan Cookie MaxAge
+ */
+function parseTimeToSeconds(timeStr: string): number {
+  const value = parseInt(timeStr);
+  if (isNaN(value)) return 0;
+
+  const unit = timeStr.toLowerCase().slice(-1);
+  switch (unit) {
+    case 'd': return value * 86400; // 24 * 60 * 60
+    case 'h': return value * 3600;  // 60 * 60
+    case 'm': return value * 60;
+    case 's': return value;
+    default: return value; // Asumsi detik jika tidak ada unit
+  }
+}
+
+/**
  * Konfigurasi Global Aplikasi
  * Pastikan SUPER_ADMIN_ROLE_ID sudah diset di file .env
  */
@@ -13,6 +31,9 @@ const envVarsSchema = Joi.object({
   SUPER_ADMIN_ROLE_ID: Joi.string().uuid().required().messages({
     "string.guid": "SUPER_ADMIN_ROLE_ID di .env harus berupa format UUID yang valid.",
     "any.required": "SUPER_ADMIN_ROLE_ID tidak ditemukan di .env"
+  }),
+  APP_URL: Joi.string().required().messages({
+    "any.required": "APP_URL wajib dikonfigurasi di file .env agar sistem dapat menentukan URL secara dinamis."
   }),
   JWT_SECRET: Joi.string().default("fallback"),
   JWT_EXP: Joi.string().default("1d"),
@@ -44,12 +65,19 @@ if (error) {
 export const appConfig = {
   databaseUrl: envVars.DATABASE_URL,
   superAdminRoleId: envVars.SUPER_ADMIN_ROLE_ID,
+  // Mengganti ${PORT} dengan nilai dari variabel PORT jika ada di string APP_URL
+  appUrl: envVars.APP_URL.replace(
+    '${PORT}', 
+    envVars.PORT.toString()
+  ),
   port: envVars.PORT,
   jwt: {
     secret: envVars.JWT_SECRET,
     refreshSecret: envVars.REFRESH_JWT_SECRET,
     accessExp: envVars.ACCESS_TOKEN_EXPIRATION,
     refreshExp: envVars.REFRESH_TOKEN_EXPIRATION,
+    accessMaxAge: parseTimeToSeconds(envVars.ACCESS_TOKEN_EXPIRATION),
+    refreshMaxAge: parseTimeToSeconds(envVars.REFRESH_TOKEN_EXPIRATION),
     exp: envVars.JWT_EXP
   },
   swagger: {

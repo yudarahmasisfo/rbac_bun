@@ -3,18 +3,30 @@ import { jwt } from "@elysiajs/jwt";
 import { rateLimit } from 'elysia-rate-limit';
 import { PrismaUserRepository } from "../../infrastructure/repositories/prisma-user.repository";
 import { LoginUseCase } from "../../application/usecases/auth/login.usecase";
+import { PrismaRefreshTokenRepository } from "../../infrastructure/repositories/prisma-refresh-token.repository";
+import { GenerateTokensUseCase } from "../../application/usecases/auth/generate-tokens.usecase";
+import { RevokeRefreshTokenUseCase } from "../../application/usecases/auth/revoke-refresh-token.usecase";
+import { RefreshAccessTokenUseCase } from "../../application/usecases/auth/refresh-access-token.usecase";
 import { appConfig } from "../../config/app.config";
 
 const userRepo = new PrismaUserRepository();
+const refreshTokenRepo = new PrismaRefreshTokenRepository();
 const loginUseCase = new LoginUseCase(userRepo);
+const generateTokensUseCase = new GenerateTokensUseCase(refreshTokenRepo);
+const revokeRefreshTokenUseCase = new RevokeRefreshTokenUseCase(refreshTokenRepo);
+const refreshAccessTokenUseCase = new RefreshAccessTokenUseCase(userRepo, refreshTokenRepo);
 
 export const authRoutes = new Elysia({ prefix: '/auth' })
   // --- LAPIS 2: SPECIFIC RATE LIMIT (LOGIN) ---
   .use(
     rateLimit({
-      max: 5, // Sangat ketat: hanya 5 kali percobaan
+      max: 20, 
       duration: 60000, // 1 menit (dalam milidetik)
-      generator: (request) => request.headers.get('x-forwarded-for') || 'global',
+      generator: (request) => {
+        // Mengambil IP asli user, jika tidak ada baru gunakan fallback 'global'
+        const ip = request.headers.get('x-real-ip') || request.headers.get('x-forwarded-for')?.split(',')[0];
+        return ip || 'global';
+      },
       errorResponse: new Response(JSON.stringify({
         success: false,
         error: "Terlalu banyak percobaan login. Akun Anda aman, silakan coba lagi dalam 1 menit."
@@ -40,9 +52,12 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
     // 1. Jalankan logika login
     const userPayload = await loginUseCase.execute(body);
 
-    // 2. Generate Access & Refresh Token
-    const accessToken = await accessJwt.sign(userPayload as any);
-    const refreshToken = await refreshJwt.sign({ id: userPayload.id } as any);
+    // 2. Generate Access & Refresh Token (OTOMATIS SIMPAN KE DATABASE)
+    const { accessToken, refreshToken } = await generateTokensUseCase.execute({ 
+      userPayload: userPayload as any, 
+      accessJwt: accessJwt as any, 
+      refreshJwt: refreshJwt as any 
+    });
 
     // 3. Simpan Access Token di HttpOnly Cookie
     access_token.set({
@@ -51,7 +66,7 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax', // Mencegah CSRF
       path: '/',
-      maxAge: 15 * 60 // 15 Menit
+      maxAge: appConfig.jwt.accessMaxAge
     });
 
     // 4. Simpan Refresh Token di HttpOnly Cookie (Strict Security)
@@ -60,8 +75,8 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      path: '/api/v1/auth/refresh', // Hanya dikirim ke route refresh
-      maxAge: 7 * 86400 // 7 Hari
+      path: '/', // Gunakan path global agar konsisten di semua endpoint auth
+      maxAge: appConfig.jwt.refreshMaxAge
     });
 
     // 5. Kembalikan data user TANPA token di body (Mencegah XSS)
@@ -94,31 +109,44 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
 
   // --- POINT 3: REFRESH TOKEN ENDPOINT ---
   .post("/refresh", async ({ refreshJwt, accessJwt, cookie: { refresh_token, access_token }, set }) => {
-    const token = refresh_token.value;
-    if (!token) {
+    const currentRefreshToken = refresh_token.value;
+    if (!currentRefreshToken) {
       set.status = 401;
       return { success: false, error: "Sesi berakhir" };
     }
 
-    const payload = await refreshJwt.verify(token as string);
-    if (!payload) {
+    try {
+      // Gunakan UseCase untuk verifikasi JWT sekaligus validasi di database
+      const { newAccessToken, newRefreshToken, userPayload } = await refreshAccessTokenUseCase.execute({
+        refreshToken: currentRefreshToken as string,
+        accessJwt: accessJwt as any,
+        refreshJwt: refreshJwt as any,
+      });
+
+      access_token.set({
+        value: newAccessToken,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/', 
+        maxAge: appConfig.jwt.accessMaxAge
+      });
+
+      // Update Refresh Token (Rotation)
+      refresh_token.set({
+        value: newRefreshToken,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/',
+        maxAge: appConfig.jwt.refreshMaxAge
+      });
+
+      return { success: true, message: "Akses diperbarui", user: userPayload };
+    } catch (error: any) {
       set.status = 401;
-      return { success: false, error: "Refresh token tidak valid" };
+      return { success: false, error: error.message };
     }
-
-    // Generate access token baru
-    const newAccessToken = await accessJwt.sign({ id: (payload as any).id } as any);
-    
-    access_token.set({
-      value: newAccessToken,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 15 * 60
-    });
-
-    return { success: true, message: "Akses diperbarui" };
   }, {
     cookie: t.Cookie({
       access_token: t.Optional(t.String()),
@@ -127,9 +155,26 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
   })
 
   // --- POINT 4: LOGOUT ---
-  .post("/logout", ({ cookie: { access_token, refresh_token } }) => {
-    access_token.remove();
-    refresh_token.remove();
+  .post("/logout", async ({ cookie: { access_token, refresh_token }, set }) => {
+    const tokenValue = refresh_token.value;
+
+    // 1. Cabut token dari database (Invalidasi Sesi)
+    if (tokenValue) {
+      await revokeRefreshTokenUseCase.execute(tokenValue);
+    }
+
+    // 2. Hapus cookie dari browser dengan memastikan path-nya benar
+    access_token.set({
+      value: '',
+      path: '/',
+      maxAge: 0
+    });
+    refresh_token.set({
+      value: '',
+      path: '/',
+      maxAge: 0
+    });
+
     return {
       success: true,
       message: "Logout berhasil, sesi telah dihapus"

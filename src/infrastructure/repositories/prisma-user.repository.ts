@@ -91,6 +91,10 @@ export class PrismaUserRepository implements IUserRepository {
       if (error.code === 'P2002') {
         throw new Error("Email atau Username sudah terdaftar.");
       }
+      // Tangkap error relasi ID Role tidak ditemukan (P2003)
+      if (error.code === 'P2003' || error.message?.includes("foreign key constraint")) {
+        throw new Error("Satu atau lebih Role ID tidak valid atau tidak ditemukan di sistem.");
+      }
       throw error;
     }
   }
@@ -115,6 +119,10 @@ export class PrismaUserRepository implements IUserRepository {
     } catch (error: any) {
       if (error.code === 'P2002') {
         throw new Error("Gagal update: Email atau Username sudah digunakan.");
+      }
+      // Tangkap error relasi ID Role tidak ditemukan
+      if (error.code === 'P2003' || error.message?.includes("foreign key constraint")) {
+        throw new Error("Gagal update: Satu atau lebih Role ID tidak ditemukan.");
       }
       throw error;
     }

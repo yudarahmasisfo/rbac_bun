@@ -78,7 +78,9 @@ export const userRoutes = new Elysia()
         {
           detail: {
             summary: "Daftar Semua Pengguna",
+            description: "Mengambil semua daftar user. Izin: USER_ALL atau SUPER_ADMIN.",
             tags: ["Users"],
+            security: [{ BearerAuth: [] }]
           },
           query: t.Object({
             isActive: t.Optional(t.String({ description: "Filter status aktif (true/false)" }))
@@ -102,7 +104,9 @@ export const userRoutes = new Elysia()
         {
           detail: {
             summary: "Detail Pengguna",
+            description: "Melihat informasi detail user berdasarkan ID. Izin: USER_READ atau SUPER_ADMIN.",
             tags: ["Users"],
+            security: [{ BearerAuth: [] }]
           },
           beforeHandle: hasPermission("USER_READ"),
         },
@@ -125,8 +129,9 @@ export const userRoutes = new Elysia()
         {
           detail: {
             summary: "Registrasi Pengguna Baru",
-            description: "Membuat akun user baru dan langsung memberikan role.",
+            description: "Membuat akun user baru dan memberikan role. Izin: USER_CREATE atau SUPER_ADMIN.",
             tags: ["Users"],
+            security: [{ BearerAuth: [] }]
           },
           beforeHandle: hasPermission("USER_CREATE"),
           body: t.Object({
@@ -169,8 +174,9 @@ export const userRoutes = new Elysia()
         {
           detail: {
             summary: "Update Data Pengguna",
-            description: "Memperbarui informasi profil atau password user.",
+            description: "Memperbarui profil atau password user. Izin: USER_UPDATE atau SUPER_ADMIN.",
             tags: ["Users"],
+            security: [{ BearerAuth: [] }]
           },
           beforeHandle: hasPermission("USER_UPDATE"),
 
@@ -199,8 +205,9 @@ export const userRoutes = new Elysia()
         {
           detail: {
             summary: "Ganti Role Pengguna",
-            description: "Menghapus role lama dan menggantinya dengan daftar role baru.",
+            description: "Mengganti role user secara permanen. Izin: USER_ASSIGN_ROLE atau SUPER_ADMIN.",
             tags: ["Users"],
+            security: [{ BearerAuth: [] }]
           },
           beforeHandle: hasPermission("USER_ASSIGN_ROLE"),
 
@@ -226,7 +233,9 @@ export const userRoutes = new Elysia()
         {
           detail: {
             summary: "Mengaktifkan User",
+            description: "Mengubah status user menjadi aktif agar bisa login. Izin: USER_ACTIVATE atau SUPER_ADMIN.",
             tags: ["Users"],
+            security: [{ BearerAuth: [] }]
           },
           beforeHandle: hasPermission("USER_ACTIVATE")
         }
@@ -249,8 +258,9 @@ export const userRoutes = new Elysia()
         {
           detail: {
             summary: "Menonaktifkan User",
-            description: "Menonaktifkan akun dan memutuskan semua sesi login user tersebut.",
+            description: "Menonaktifkan akun dan mencabut semua sesi aktif (logout paksa). Izin: USER_DEACTIVATE atau SUPER_ADMIN.",
             tags: ["Users"],
+            security: [{ BearerAuth: [] }]
           },
           beforeHandle: hasPermission("USER_DEACTIVATE")
         }
@@ -270,8 +280,9 @@ export const userRoutes = new Elysia()
         {
           detail: {
             summary: "Hapus Pengguna",
-            description: "Menghapus user secara permanen beserta relasi role-nya.",
+            description: "Menghapus user secara permanen dari sistem. Izin: USER_DELETE atau SUPER_ADMIN.",
             tags: ["Users"],
+            security: [{ BearerAuth: [] }]
           },
           beforeHandle: hasPermission("USER_DELETE"),
         },

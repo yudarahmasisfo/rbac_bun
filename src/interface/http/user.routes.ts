@@ -14,9 +14,17 @@ import { AssignRoleUseCase } from "../../application/usecases/user/assign-role.u
 
 import { GetUserDetailUseCase } from "../../application/usecases/user/get-user-detail.usecase";
 
+import { ActivateUserUseCase } from "../../application/usecases/user/activate-user.usecase";
+
+import { DeactivateUserUseCase } from "../../application/usecases/user/deactivate-user.usecase";
+
+import { PrismaRefreshTokenRepository } from "../../infrastructure/repositories/prisma-refresh-token.repository";
+
 import { hasPermission, rbacPlugin } from "../middleware/rbac.plugin";
 
 const userRepo = new PrismaUserRepository();
+
+const refreshTokenRepo = new PrismaRefreshTokenRepository();
 
 const registerUseCase = new RegisterUserUseCase(userRepo);
 
@@ -29,6 +37,10 @@ const deleteUseCase = new DeleteUserUseCase(userRepo);
 const getAllUsersUseCase = new GetAllUsersUseCase(userRepo);
 
 const getUserDetailUseCase = new GetUserDetailUseCase(userRepo);
+
+const activateUserUseCase = new ActivateUserUseCase(userRepo);
+
+const deactivateUserUseCase = new DeactivateUserUseCase(userRepo, refreshTokenRepo);
 
 const sanitizeUser = (user: any) => {
   if (!user) return null;
@@ -48,8 +60,14 @@ export const userRoutes = new Elysia()
       // GET ALL USERS
       .get(
         "/",
-        async () => {
-          const users = await getAllUsersUseCase.execute();
+        async ({ query }) => {
+          // Konversi query string ke boolean
+          let isActiveFilter: boolean | undefined = undefined;
+          if (query.isActive === 'true') isActiveFilter = true;
+          if (query.isActive === 'false') isActiveFilter = false;
+
+          // Pastikan execute() pada GetAllUsersUseCase sudah diupdate untuk menerima parameter
+          const users = await getAllUsersUseCase.execute(isActiveFilter);
 
           return {
             success: true,
@@ -62,6 +80,9 @@ export const userRoutes = new Elysia()
             summary: "Daftar Semua Pengguna",
             tags: ["Users"],
           },
+          query: t.Object({
+            isActive: t.Optional(t.String({ description: "Filter status aktif (true/false)" }))
+          }),
           beforeHandle: hasPermission("USER_ALL"),
         },
       )
@@ -189,6 +210,50 @@ export const userRoutes = new Elysia()
             })),
           }),
         },
+      )
+
+      // AKTIVASI USER (USER_ACTIVATE)
+      .post(
+        "/:id/activate",
+        async ({ params: { id } }) => {
+          const user = await activateUserUseCase.execute(id);
+          return {
+            success: true,
+            message: "User berhasil diaktifkan. Sekarang user bisa melakukan login.",
+            data: sanitizeUser(user)
+          };
+        },
+        {
+          detail: {
+            summary: "Mengaktifkan User",
+            tags: ["Users"],
+          },
+          beforeHandle: hasPermission("USER_ACTIVATE")
+        }
+      )
+
+      // DEAKTIVASI USER (USER_DEACTIVATE)
+      .post(
+        "/:id/deactivate",
+        async ({ params: { id }, user }) => {
+          // Kita kirim user.id (admin) untuk mencegah mematikan akun sendiri
+          const adminId = (user as any)?.id;
+          const result = await deactivateUserUseCase.execute(id, adminId);
+          
+          return {
+            success: true,
+            message: "User berhasil dinonaktifkan dan semua sesi aktif telah dicabut.",
+            data: sanitizeUser(result)
+          };
+        },
+        {
+          detail: {
+            summary: "Menonaktifkan User",
+            description: "Menonaktifkan akun dan memutuskan semua sesi login user tersebut.",
+            tags: ["Users"],
+          },
+          beforeHandle: hasPermission("USER_DEACTIVATE")
+        }
       )
 
       // DELETE USER

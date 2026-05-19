@@ -3,8 +3,9 @@ import type { IUserRepository } from "../../domain/repositories/user.repository"
 import type { User } from "@prisma/client";
 
 export class PrismaUserRepository implements IUserRepository {
-  async findAll(): Promise<any[]> {
+  async findAll(isActive?: boolean): Promise<any[]> {
     return await db.user.findMany({
+      where: isActive !== undefined ? { isActive } : {},
       include: {
         roles: {
           include: {
@@ -72,7 +73,7 @@ export class PrismaUserRepository implements IUserRepository {
   }
 
   
-  async create(data: { username: string; email: string; name: string; password: string; roleIds: string[] }): Promise<User> {
+  async create(data: { username: string; email: string; name: string; password: string; roleIds: string[]; isActive?: boolean }): Promise<User> {
     try {
       return await db.user.create({
         data: {
@@ -80,6 +81,7 @@ export class PrismaUserRepository implements IUserRepository {
           email: data.email,
           name: data.name,
           password: data.password,
+          isActive: data.isActive ?? false,
           roles: {
             create: data.roleIds.map((rId) => ({
               roleId: rId
@@ -99,7 +101,7 @@ export class PrismaUserRepository implements IUserRepository {
     }
   }
 
-  async update(id: string, data: { username?: string; email?: string; name?: string; password?: string; roleIds?: string[] }): Promise<User> {
+  async update(id: string, data: { username?: string; email?: string; name?: string; password?: string; roleIds?: string[]; isActive?: boolean }): Promise<User> {
     try {
       return await db.user.update({
         where: { id },
@@ -108,6 +110,7 @@ export class PrismaUserRepository implements IUserRepository {
           email: data.email,
           name: data.name,
           password: data.password,
+          isActive: data.isActive,
           roles: data.roleIds ? {
             deleteMany: {}, // Menghapus relasi lama di tabel UserRole
             create: data.roleIds.map((rId) => ({

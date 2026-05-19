@@ -20,6 +20,11 @@ export class LoginUseCase {
       throw new Error("Username dan password tidak ditemukan di sistem kami");
     }
 
+    // Cek apakah user aktif
+    if (!user.isActive) {
+      throw new Error("Akun Anda sedang dinonaktifkan. Silakan hubungi Administrator.");
+    }
+
     // 3. Verifikasi password menggunakan Bun.password
     const isPasswordValid = await Bun.password.verify(
       value.password,

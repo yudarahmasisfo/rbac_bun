@@ -3,8 +3,8 @@ import type { IUserRepository } from "../../../domain/repositories/user.reposito
 export class GetAllUsersUseCase {
   constructor(private userRepo: IUserRepository) {}
 
-  async execute() {
-    const users = await this.userRepo.findAll();
+  async execute(isActive?: boolean) {
+    const users = await this.userRepo.findAll(isActive);
 
     // Mapping untuk membersihkan data (menghilangkan password)
     return users.map((user) => {

@@ -45,6 +45,13 @@ export class RefreshAccessTokenUseCase {
       throw new Error("Pengguna tidak ditemukan.");
     }
 
+    // Cek apakah user masih aktif
+    if (!user.isActive) {
+      // Cabut token dari DB jika user dinonaktifkan
+      await this.refreshTokenRepo.delete(storedRefreshToken.id);
+      throw new Error("Akun Anda telah dinonaktifkan. Sesi dibatalkan.");
+    }
+
     // 4. Buat payload user untuk access token baru
     const userPayload = {
       id: user.id as string,

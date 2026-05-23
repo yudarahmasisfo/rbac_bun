@@ -25,6 +25,7 @@ export const userSchemas = {
           "Nama lengkap hanya boleh berisi huruf dan spasi.",
         "any.required": "Nama lengkap wajib diisi.",
       }),
+    photo: Joi.any().optional(),
     email: Joi.string().email().required().messages({
       "string.email": "Format email tidak valid.",
       "string.empty": "Email tidak boleh kosong.",
@@ -72,6 +73,7 @@ export const userSchemas = {
         "string.pattern.base":
           "Nama lengkap hanya boleh berisi huruf, angka, dan spasi.",
       }),
+    photo: Joi.any().optional(),
     email: Joi.string().email().optional().messages({
       "string.email": "Format email tidak valid.",
     }),

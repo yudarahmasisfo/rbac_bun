@@ -73,13 +73,17 @@ export class PrismaUserRepository implements IUserRepository {
   }
 
   
-  async create(data: { username: string; email: string; name: string; password: string; roleIds: string[]; isActive?: boolean }): Promise<User> {
+  async create(data: { username: string; email: string; name: string; photo?: string; password: string; roleIds: string[]; isActive?: boolean }): Promise<User> {
     try {
+      // Jika photo tidak ada, gunakan default UI Avatars berdasarkan nama
+      const defaultPhoto = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name || data.username)}&background=random&color=fff`;
+
       return await db.user.create({
         data: {
           username: data.username,
           email: data.email,
           name: data.name,
+          photo: data.photo || defaultPhoto,
           password: data.password,
           isActive: data.isActive ?? false,
           roles: {
@@ -101,7 +105,7 @@ export class PrismaUserRepository implements IUserRepository {
     }
   }
 
-  async update(id: string, data: { username?: string; email?: string; name?: string; password?: string; roleIds?: string[]; isActive?: boolean }): Promise<User> {
+  async update(id: string, data: { username?: string; email?: string; name?: string; photo?: string; password?: string; roleIds?: string[]; isActive?: boolean }): Promise<User> {
     try {
       return await db.user.update({
         where: { id },
@@ -109,6 +113,7 @@ export class PrismaUserRepository implements IUserRepository {
           username: data.username,
           email: data.email,
           name: data.name,
+          photo: data.photo,
           password: data.password,
           isActive: data.isActive,
           roles: data.roleIds ? {

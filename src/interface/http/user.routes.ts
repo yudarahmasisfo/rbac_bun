@@ -143,6 +143,11 @@ export const userRoutes = new Elysia()
               description: "Nama lengkap pengguna",
               examples: ["Yuda Pratama"] 
             }),
+            photo: t.Optional(t.File({ 
+              maxSize: 2 * 1024 * 1024, // 2MB dalam bytes
+              type: ['image/jpeg', 'image/png'],
+              description: "File foto profil (Max 2MB, format JPG/PNG)"
+            })),
             email: t.String({ 
               description: "Alamat email aktif",
               format: "email",
@@ -183,6 +188,11 @@ export const userRoutes = new Elysia()
           body: t.Object({
             username: t.Optional(t.String({ description: "Username baru" })),
             name: t.Optional(t.String({ description: "Nama lengkap baru" })),
+            photo: t.Optional(t.File({ 
+              maxSize: 2 * 1024 * 1024,
+              type: ['image/jpeg', 'image/png'],
+              description: "File foto profil baru (Max 2MB, format JPG/PNG)" 
+            })),
             email: t.Optional(t.String({ format: "email", description: "Email baru" })),
             password: t.Optional(t.String({ description: "Password baru (jika ingin diubah)" })),
             roleIds: t.Optional(t.Array(t.String({ description: "Update daftar Role ID" }))),

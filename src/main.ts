@@ -2,6 +2,7 @@ import "dotenv/config";
 import { Elysia, t } from "elysia";
 import { html } from "@elysiajs/html";
 import { swagger } from "@elysiajs/swagger";
+import { staticPlugin } from '@elysiajs/static';
 import { rateLimit } from 'elysia-rate-limit';
 import { permissionRoutes } from "./interface/http/permission.routes";
 import { roleRoutes } from "./interface/http/role.routes";
@@ -24,6 +25,7 @@ const app = new Elysia({
   }
 })
   .use(html()) // Aktifkan dukungan HTML
+  .use(staticPlugin()) // Aktifkan akses file statis di folder /public
   // --- LAPIS 1: GLOBAL RATE LIMIT ---
   .use(
     rateLimit({
@@ -45,6 +47,22 @@ const app = new Elysia({
     UNAUTHORIZED: Error,
     VALIDATION_ERROR: Error
   })
+  // --- SECURITY: Proteksi Folder Uploads ---
+  .onBeforeHandle(({ request, set }) => {
+    const url = new URL(request.url);
+    if (url.pathname.startsWith('/public/uploads/')) {
+      // 1. Cegah browser mengeksekusi file sebagai script/HTML
+      set.headers['Content-Security-Policy'] = "default-src 'none'; img-src 'self'; style-src 'self';";
+      set.headers['X-Content-Type-Options'] = 'nosniff';
+      
+      // 2. Double check: Hanya izinkan akses ke file dengan ekstensi gambar
+      const allowedExtensions = /\.(jpg|jpeg|png)$/i;
+      if (!allowedExtensions.test(url.pathname)) {
+        set.status = 403;
+        return { success: false, error: "Akses ditolak: File bukan gambar yang diizinkan." };
+      }
+    }
+  })
   .onError(({ code, error, set }) => {
     // Mapping status code berdasarkan pesan error atau tipe error
     const message = error instanceof Error ? error.message : String(error);
@@ -57,10 +75,23 @@ const app = new Elysia({
            return { 
              success: false, 
              error: "Input tidak valid", 
-             details: (error as any).all.map((err: any) => ({
-               path: err.path.replace('/', ''),
-               message: err.message
-             }))
+             details: (error as any).all.map((err: any) => {
+               const path = err.path.replace('/', '');
+               let message = err.message;
+
+               // Logika penerjemahan pesan error kustom (Bahasa Indonesia)
+               if (err.message.includes('Expected size')) {
+                 message = `Ukuran file pada '${path}' terlalu besar. Maksimal yang diizinkan adalah 2MB.`;
+               } else if (err.message.includes('Expected file type')) {
+                 message = `Format file pada '${path}' tidak didukung. Harap unggah file dengan format JPG atau PNG.`;
+               } else if (err.message.includes('Expected string')) {
+                 message = `Kolom '${path}' harus diisi dengan teks.`;
+               } else if (err.message.includes('Expected value to be')) {
+                 message = `Nilai pada '${path}' tidak valid atau tidak sesuai kriteria.`;
+               }
+
+               return { path, message };
+             })
            };
         }
         break;
